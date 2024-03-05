@@ -12,7 +12,20 @@ Etherna Gateway CLI requires at least [.NET 8 Runtime](https://dotnet.microsoft.
 ### How to use
 
 ```
-<TO_DO>
+Usage:  etherna [OPTIONS] COMMAND
+
+Commands:
+  download    Download a resource from Swarm
+  postage     Manage postage batches
+  resource    Manage resources on Gateway
+  upload      Upload a resource to Swarm
+
+General Options:
+  -k, --api-key           Api Key (optional)
+  -i, --ignore-update     Ignore new version of EthernaGatewayCli
+
+Run 'etherna -h' or 'etherna --help' to print help.
+Run 'etherna COMMAND -h' or 'etherna COMMAND --help' for more information on a command.
 ```
 
 # Issue reports
