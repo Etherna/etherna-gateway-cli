@@ -59,24 +59,30 @@ namespace Etherna.GatewayCli
 
             //general options
             var generalOptionsArgsCount = 0;
-            for (; generalOptionsArgsCount < args.Length && args[generalOptionsArgsCount].StartsWith('-'); generalOptionsArgsCount++)
+            if (!printHelp)
             {
-                switch (args[generalOptionsArgsCount])
+                for (;
+                     generalOptionsArgsCount < args.Length && args[generalOptionsArgsCount].StartsWith('-');
+                     generalOptionsArgsCount++)
                 {
-                    case "-k":
-                    case "--api-key":
-                        if (args.Length == generalOptionsArgsCount + 1)
-                            throw new ArgumentException("Api Key is missing");
-                        apiKey = args[++generalOptionsArgsCount];
-                        break;
+                    switch (args[generalOptionsArgsCount])
+                    {
+                        case "-k":
+                        case "--api-key":
+                            if (args.Length == generalOptionsArgsCount + 1)
+                                throw new ArgumentException("Api Key is missing");
+                            apiKey = args[++generalOptionsArgsCount];
+                            break;
 
-                    case "-i":
-                    case "--ignore-update":
-                        ignoreUpdate = true;
-                        break;
+                        case "-i":
+                        case "--ignore-update":
+                            ignoreUpdate = true;
+                            break;
 
-                    default:
-                        throw new ArgumentException(args[generalOptionsArgsCount] + " is not a valid general option");
+                        default:
+                            throw new ArgumentException(
+                                args[generalOptionsArgsCount] + " is not a valid general option");
+                    }
                 }
             }
 
@@ -129,23 +135,22 @@ namespace Etherna.GatewayCli
             var serviceProvider = services.BuildServiceProvider();
 
             // Run command.
-            var availableCommands =
-                availableCommandTypes.Select(t => (ICommand)serviceProvider.GetRequiredService(t));
+            var allCommands = availableCommandTypes.Select(t => (ICommand)serviceProvider.GetRequiredService(t));
 
             if (printHelp)
             {
-                PrintHelp(availableCommands);
+                PrintHelp(allCommands);
             }
             else //select and run command
             {
-                var commandName = args[0];
-                var commandArgs = args[1..];
+                var commandName = args[generalOptionsArgsCount];
+                var commandArgs = args[(generalOptionsArgsCount + 1)..];
                 
-                var selectedCommand = availableCommands.FirstOrDefault(c => c.Name == commandName);
+                var selectedCommand = allCommands.FirstOrDefault(c => c.Name == commandName);
                 if (selectedCommand is null)
-                    Console.WriteLine($"etherna: '{commandName}' is not an etherna command.");
-                else
-                    await selectedCommand.RunAsync(commandArgs);
+                    throw new ArgumentException($"etherna: '{commandName}' is not an etherna command.");
+                
+                await selectedCommand.RunAsync(commandArgs);
             }
         }
     
