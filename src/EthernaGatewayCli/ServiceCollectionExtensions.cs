@@ -17,7 +17,6 @@ using Etherna.BeeNet.Clients.GatewayApi;
 using Etherna.GatewayCli.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 
 namespace Etherna.GatewayCli

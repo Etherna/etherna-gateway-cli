@@ -16,6 +16,7 @@ using Etherna.GatewayCli.Utilities;
 using Etherna.Sdk.Users.Native;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands
@@ -40,50 +41,16 @@ namespace Etherna.GatewayCli.Commands
         }
         
         // Properties.
+        public override IEnumerable<CommandOption> CommandOptions => new CommandOption[]
+        {
+            new(this, "-k", "--api-key", new[] { typeof(string) }, "Api Key (optional)", args => apiKey = args[0]),
+            new(this, "-i", "--ignore-update", Array.Empty<Type>(), "Ignore new versions of EthernaGatewayCli", _ => ignoreUpdate = true)
+        };
         public override string CommandUsageHelpString => "[OPTIONS] COMMAND";
         public override string Description => "A CLI interface to the Etherna Gateway";
         public override bool IsRootCommand => true;
         
         // Protected methods.
-        protected override string GetOptionsHelpString() =>
-            $$"""
-              General options:
-                -k, --api-key string    Api Key (optional)
-                -i, --ignore-update     Ignore new versions of EthernaGatewayCli
-              """;
-
-        protected override int ParseOptionArgs(string[] args)
-        {
-            ArgumentNullException.ThrowIfNull(args, nameof(args));
-            
-            var optionArgsCount = 0;
-            for (;
-                 optionArgsCount < args.Length && args[optionArgsCount].StartsWith('-');
-                 optionArgsCount++)
-            {
-                switch (args[optionArgsCount])
-                {
-                    case "-k":
-                    case "--api-key":
-                        if (args.Length == optionArgsCount + 1)
-                            throw new ArgumentException("Api Key is missing");
-                        apiKey = args[++optionArgsCount];
-                        break;
-
-                    case "-i":
-                    case "--ignore-update":
-                        ignoreUpdate = true;
-                        break;
-
-                    default:
-                        throw new ArgumentException(
-                            args[optionArgsCount] + " is not a valid option");
-                }
-            }
-
-            return optionArgsCount;
-        }
-
         protected override async Task RunPreCommandOpsAsync()
         {
             // Check for new versions.

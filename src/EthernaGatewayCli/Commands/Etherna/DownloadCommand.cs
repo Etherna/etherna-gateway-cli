@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna
@@ -29,49 +30,15 @@ namespace Etherna.GatewayCli.Commands.Etherna
         { }
         
         // Properties.
+        public override IEnumerable<CommandOption> CommandOptions => new CommandOption[]
+        {
+            new(this, "-a", "--anon", Array.Empty<Type>(), "Download resource anonymously", _ => runAnonymously = true),
+            new(this, "-o", "--output", new[] { typeof(string) }, "Resource output path. Default: current directory", args => outputPath = args[0])
+        };
         public override string CommandUsageHelpString => "[OPTIONS] RESOURCE";
         public override string Description => "Download a resource from Swarm";
 
         // Protected methods.
-        protected override string GetOptionsHelpString() =>
-            $$"""
-              Options:
-                -a, --anon              Download resource anonymously
-                -o, --output string     Resource output path. Default: current directory
-              """;
-
-        protected override int ParseOptionArgs(string[] args)
-        {
-            ArgumentNullException.ThrowIfNull(args, nameof(args));
-            
-            var optionArgsCount = 0;
-            for (;
-                 optionArgsCount < args.Length && args[optionArgsCount].StartsWith('-');
-                 optionArgsCount++)
-            {
-                switch (args[optionArgsCount])
-                {
-                    case "-a":
-                    case "--anon":
-                        runAnonymously = true;
-                        break;
-
-                    case "-o":
-                    case "--output":
-                        if (args.Length == optionArgsCount + 1)
-                            throw new ArgumentException("Output path is missing");
-                        outputPath = args[++optionArgsCount];
-                        break;
-
-                    default:
-                        throw new ArgumentException(
-                            args[optionArgsCount] + " is not a valid option");
-                }
-            }
-
-            return optionArgsCount;
-        }
-
         protected override Task RunCommandAsync(string[] commandArgs)
         {
             if (!runAnonymously)

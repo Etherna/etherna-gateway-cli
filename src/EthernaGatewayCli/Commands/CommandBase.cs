@@ -14,6 +14,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -68,6 +69,7 @@ namespace Etherna.GatewayCli.Commands
                 return string.Join(' ', parentCommandNames.Append(Name));
             }
         }
+        public virtual IEnumerable<CommandOption> CommandOptions => Array.Empty<CommandOption>();
         public abstract string CommandUsageHelpString { get; }
         public abstract string Description { get; }
         public virtual bool IsRootCommand => false;
@@ -95,14 +97,43 @@ namespace Etherna.GatewayCli.Commands
         }
         
         // Protected methods.
-        protected virtual string GetOptionsHelpString() => "";
-        
         /// <summary>
         /// Parse command options
         /// </summary>
         /// <param name="args">Input args</param>
         /// <returns>Found option args counter</returns>
-        protected abstract int ParseOptionArgs(string[] args);
+        protected virtual int ParseOptionArgs(string[] args)
+        {
+            ArgumentNullException.ThrowIfNull(args, nameof(args));
+            
+            var parsedArgsCount = 0;
+            var foundOptions = new List<CommandOption>();
+            while (parsedArgsCount < args.Length && args[parsedArgsCount].StartsWith('-'))
+            {
+                var optName = args[parsedArgsCount++];
+                
+                //find option with name
+                var foundOption = CommandOptions.FirstOrDefault(opt => opt.ShortName == optName || opt.LongName == optName);
+                if (foundOption is null)
+                    throw new ArgumentException(optName + " is not a valid option");
+                
+                //verify duplicate options
+                if (foundOptions.Any(opt => opt.ShortName == optName || opt.LongName == optName))
+                    throw new ArgumentException(optName + " option is duplicate");
+                foundOptions.Add(foundOption);
+                
+                //check required args
+                if (args.Length - parsedArgsCount < foundOption.RequiredArgTypes.Count())
+                    throw new ArgumentException($"{optName} requires {foundOption.RequiredArgTypes.Count()} args: {string.Join(" ", foundOption.RequiredArgTypes.Select(t => t.Name.ToLower()))}");
+                
+                //exec option code
+                var requiredOptArgs = args[parsedArgsCount..(parsedArgsCount + foundOption.RequiredArgTypes.Count())];
+                parsedArgsCount += requiredOptArgs.Length;
+                foundOption.OnFound(requiredOptArgs);
+            }
+
+            return parsedArgsCount;
+        }
 
         protected virtual async Task RunCommandAsync(string[] commandArgs)
         {
@@ -180,10 +211,31 @@ namespace Etherna.GatewayCli.Commands
             }
         
             // Add options.
-            var optionHelpString = GetOptionsHelpString();
-            if (!string.IsNullOrEmpty(optionHelpString))
+            if (CommandOptions.Any())
             {
-                strBuilder.AppendLine(optionHelpString);
+                strBuilder.AppendLine("Options:");
+                var descriptionShift = CommandOptions.Select(opt =>
+                {
+                    var len = opt.LongName.Length;
+                    foreach (var reqArgType in opt.RequiredArgTypes)
+                        len += reqArgType.Name.Length + 1;
+                    return len;
+                }).Max() + 4;
+                foreach (var option in CommandOptions)
+                {
+                    strBuilder.Append("  ");
+                    strBuilder.Append(option.ShortName is null ? "    " : $"{option.ShortName}, ");
+                    strBuilder.Append(option.LongName);
+                    var strLen = option.LongName.Length;
+                    foreach (var reqArgType in option.RequiredArgTypes)
+                    {
+                        strBuilder.Append($" {reqArgType.Name.ToLower()}");
+                        strLen += reqArgType.Name.Length + 1;
+                    }
+                    for (int i = 0; i < descriptionShift - strLen; i++)
+                        strBuilder.Append(' ');
+                    strBuilder.AppendLine(option.Description);
+                }
                 strBuilder.AppendLine();
             }
         
@@ -200,6 +252,9 @@ namespace Etherna.GatewayCli.Commands
 
         private async Task RunSubCommandAsync(string[] commandArgs)
         {
+            if (commandArgs.Length == 0)
+                throw new ArgumentException("A command name is required");
+            
             var subCommandName = commandArgs[0];
             var subCommandArgs = commandArgs[1..];
 
