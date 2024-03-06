@@ -13,25 +13,21 @@
 //   limitations under the License.
 
 using System;
-using System.Threading.Tasks;
 
-namespace Etherna.GatewayCli.Commands
+namespace Etherna.GatewayCli.Commands.Etherna
 {
-    public class UploadCommand : ICommand
+    public class PostageCommand : CommandBase
     {
+        // Constructor.
+        public PostageCommand(IServiceProvider serviceProvider)
+            : base(serviceProvider)
+        { }
+        
         // Properties.
-        public string Description => "Upload a resource to Swarm";
-        public string Name => "upload";
+        public override string CommandUsageHelpString => "<todo>";
+        public override string Description => "Manage postage batches";
 
         // Methods.
-        public void PrintHelp()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task RunAsync(string[] args)
-        {
-            throw new NotImplementedException();
-        }
+        protected override int ParseOptionArgs(string[] args) => 0;
     }
 }

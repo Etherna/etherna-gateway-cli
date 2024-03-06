@@ -13,25 +13,21 @@
 //   limitations under the License.
 
 using System;
-using System.Threading.Tasks;
 
-namespace Etherna.GatewayCli.Commands
+namespace Etherna.GatewayCli.Commands.Etherna
 {
-    public class ResourceCommand : ICommand
+    public class UploadCommand : CommandBase
     {
+        // Constructor.
+        public UploadCommand(IServiceProvider serviceProvider)
+            : base(serviceProvider)
+        { }
+        
         // Properties.
-        public string Description => "Manage resources on Gateway";
-        public string Name => "resource";
+        public override string CommandUsageHelpString => "<todo>";
+        public override string Description => "Upload a resource to Swarm";
 
         // Methods.
-        public void PrintHelp()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task RunAsync(string[] args)
-        {
-            throw new NotImplementedException();
-        }
+        protected override int ParseOptionArgs(string[] args) => 0;
     }
 }

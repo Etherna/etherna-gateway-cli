@@ -12,18 +12,22 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using System.Threading.Tasks;
+using System;
 
-namespace Etherna.GatewayCli.Commands
+namespace Etherna.GatewayCli.Commands.Etherna
 {
-    public interface ICommand
+    public class ResourceCommand : CommandBase
     {
-        // Properties.
-        string Description { get; }
-        string Name { get; }
+        // Constructor.
+        public ResourceCommand(IServiceProvider serviceProvider)
+            : base(serviceProvider)
+        { }
         
+        // Properties.
+        public override string CommandUsageHelpString => "<todo>";
+        public override string Description => "Manage Swarm resources";
+
         // Methods.
-        void PrintHelp();
-        Task RunAsync(string[] args);
+        protected override int ParseOptionArgs(string[] args) => 0;
     }
 }

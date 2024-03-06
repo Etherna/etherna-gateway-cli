@@ -25,14 +25,8 @@ namespace Etherna.GatewayCli
     internal static class ServiceCollectionExtensions
     {
         public static void AddCoreServices(
-            this IServiceCollection services,
-            IEnumerable<Type> availableCommandTypes,
-            string httpClientName)
+            this IServiceCollection services)
         {
-            // Add commands.
-            foreach (var commandType in availableCommandTypes)
-                services.AddTransient(commandType);
-            
             // Add transient services.
             services.AddTransient<IGatewayService, GatewayService>();
 
@@ -42,7 +36,7 @@ namespace Etherna.GatewayCli
             {
                 var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
                 return new BeeGatewayClient(
-                    httpClientFactory.CreateClient(httpClientName),
+                    httpClientFactory.CreateClient(CommonConsts.HttpClientName),
                     new Uri(CommonConsts.EthernaGatewayUrl),
                     CommonConsts.BeeNodeGatewayVersion);
             });
