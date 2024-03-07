@@ -14,6 +14,7 @@
 
 using Etherna.BeeNet.Clients.GatewayApi;
 using Etherna.GatewayCli.Models.Commands;
+using Etherna.GatewayCli.Services;
 using System;
 using System.Threading.Tasks;
 
@@ -22,14 +23,17 @@ namespace Etherna.GatewayCli.Commands.Etherna
     public class DownloadCommand : CommandBase<DownloadCommandOptions>
     {
         // Fields.
+        private readonly IAuthenticationService authService;
         private readonly IBeeGatewayClient beeGatewayClient;
-        
+
         // Constructor.
         public DownloadCommand(
+            IAuthenticationService authService,
             IBeeGatewayClient beeGatewayClient,
             IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
+            this.authService = authService;
             this.beeGatewayClient = beeGatewayClient;
         }
         
@@ -38,14 +42,12 @@ namespace Etherna.GatewayCli.Commands.Etherna
         public override string Description => "Download a resource from Swarm";
 
         // Protected methods.
-        protected override Task RunCommandAsync(string[] commandArgs)
+        protected override async Task RunCommandAsync(string[] commandArgs)
         {
             if (!Options.RunAnonymously)
-            {
-                
-            }
+                await authService.SignInAsync();
             
-            throw new NotImplementedException();
+            
         }
     }
 }

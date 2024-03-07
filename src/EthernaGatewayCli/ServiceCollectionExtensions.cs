@@ -27,6 +27,7 @@ namespace Etherna.GatewayCli
             this IServiceCollection services)
         {
             // Add transient services.
+            services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<IGatewayService, GatewayService>();
 
             // Add singleton services.
