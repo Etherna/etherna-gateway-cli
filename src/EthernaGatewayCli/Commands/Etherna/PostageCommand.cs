@@ -29,6 +29,5 @@ namespace Etherna.GatewayCli.Commands.Etherna
         public override string Description => "Manage postage batches";
 
         // Methods.
-        protected override int ParseOptionArgs(string[] args) => 0;
     }
 }

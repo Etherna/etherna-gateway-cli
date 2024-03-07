@@ -29,6 +29,5 @@ namespace Etherna.GatewayCli.Commands.Etherna
         public override string Description => "Manage Swarm resources";
 
         // Methods.
-        protected override int ParseOptionArgs(string[] args) => 0;
     }
 }
