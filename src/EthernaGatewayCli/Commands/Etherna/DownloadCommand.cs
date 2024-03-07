@@ -12,36 +12,35 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.BeeNet.Clients.GatewayApi;
+using Etherna.GatewayCli.Models.Commands;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna
 {
-    public class DownloadCommand : CommandBase
+    public class DownloadCommand : CommandBase<DownloadCommandOptions>
     {
         // Fields.
-        private bool runAnonymously;
-        private string outputPath = Environment.CurrentDirectory;
+        private readonly IBeeGatewayClient beeGatewayClient;
         
         // Constructor.
-        public DownloadCommand(IServiceProvider serviceProvider)
+        public DownloadCommand(
+            IBeeGatewayClient beeGatewayClient,
+            IServiceProvider serviceProvider)
             : base(serviceProvider)
-        { }
+        {
+            this.beeGatewayClient = beeGatewayClient;
+        }
         
         // Properties.
-        public override IEnumerable<CommandOption> CommandOptions => new CommandOption[]
-        {
-            new(this, "-a", "--anon", Array.Empty<Type>(), "Download resource anonymously", _ => runAnonymously = true),
-            new(this, "-o", "--output", new[] { typeof(string) }, "Resource output path. Default: current directory", args => outputPath = args[0])
-        };
         public override string CommandUsageHelpString => "[OPTIONS] RESOURCE";
         public override string Description => "Download a resource from Swarm";
 
         // Protected methods.
         protected override Task RunCommandAsync(string[] commandArgs)
         {
-            if (!runAnonymously)
+            if (!Options.RunAnonymously)
             {
                 
             }

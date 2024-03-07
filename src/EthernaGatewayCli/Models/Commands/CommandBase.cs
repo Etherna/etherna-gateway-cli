@@ -14,7 +14,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -22,7 +21,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Etherna.GatewayCli.Commands
+namespace Etherna.GatewayCli.Models.Commands
 {
     public abstract class CommandBase
     {
@@ -69,7 +68,6 @@ namespace Etherna.GatewayCli.Commands
                 return string.Join(' ', parentCommandNames.Append(Name));
             }
         }
-        public virtual IEnumerable<CommandOption> CommandOptions => Array.Empty<CommandOption>();
         public abstract string CommandUsageHelpString { get; }
         public abstract string Description { get; }
         public virtual bool IsRootCommand => false;
@@ -83,67 +81,48 @@ namespace Etherna.GatewayCli.Commands
             var printHelp = EvaluatePrintHelp(args);
             var optionArgsCount = printHelp ? 0 : ParseOptionArgs(args);
             
-            // Run pre-command operations.
-            await RunPreCommandOpsAsync();
-            
             // Print help or run command.
             if (printHelp)
                 PrintHelp();
             else
                 await RunCommandAsync(args[optionArgsCount..]);
-            
-            // Run post-command operations.
-            await RunPostCommandOpsAsync();
         }
         
         // Protected methods.
+        protected virtual void AppendOptionsHelp(StringBuilder strBuilder) { }
+        
         /// <summary>
         /// Parse command options
         /// </summary>
         /// <param name="args">Input args</param>
         /// <returns>Found option args counter</returns>
-        protected virtual int ParseOptionArgs(string[] args)
-        {
-            ArgumentNullException.ThrowIfNull(args, nameof(args));
-            
-            var parsedArgsCount = 0;
-            var foundOptions = new List<CommandOption>();
-            while (parsedArgsCount < args.Length && args[parsedArgsCount].StartsWith('-'))
-            {
-                var optName = args[parsedArgsCount++];
-                
-                //find option with name
-                var foundOption = CommandOptions.FirstOrDefault(opt => opt.ShortName == optName || opt.LongName == optName);
-                if (foundOption is null)
-                    throw new ArgumentException(optName + " is not a valid option");
-                
-                //verify duplicate options
-                if (foundOptions.Any(opt => opt.ShortName == optName || opt.LongName == optName))
-                    throw new ArgumentException(optName + " option is duplicate");
-                foundOptions.Add(foundOption);
-                
-                //check required args
-                if (args.Length - parsedArgsCount < foundOption.RequiredArgTypes.Count())
-                    throw new ArgumentException($"{optName} requires {foundOption.RequiredArgTypes.Count()} args: {string.Join(" ", foundOption.RequiredArgTypes.Select(t => t.Name.ToLower()))}");
-                
-                //exec option code
-                var requiredOptArgs = args[parsedArgsCount..(parsedArgsCount + foundOption.RequiredArgTypes.Count())];
-                parsedArgsCount += requiredOptArgs.Length;
-                foundOption.OnFound(requiredOptArgs);
-            }
-
-            return parsedArgsCount;
-        }
-
+        protected virtual int ParseOptionArgs(string[] args) => 0;
+        
         protected virtual async Task RunCommandAsync(string[] commandArgs)
         {
             ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
             await RunSubCommandAsync(commandArgs);
         }
-        
-        protected virtual Task RunPostCommandOpsAsync() => Task.CompletedTask;
-        
-        protected virtual Task RunPreCommandOpsAsync() => Task.CompletedTask;
+
+        protected async Task RunSubCommandAsync(string[] commandArgs)
+        {
+            ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
+
+            if (commandArgs.Length == 0)
+                throw new ArgumentException("A command name is required");
+            
+            var subCommandName = commandArgs[0];
+            var subCommandArgs = commandArgs[1..];
+
+            var selectedCommandType = AvailableSubCommandTypes.FirstOrDefault(
+                t => GetCommandNameFromType(t) == subCommandName);
+            
+            if (selectedCommandType is null)
+                throw new ArgumentException($"{CommandNamesPath}: '{subCommandName}' is not a valid command.");
+
+            var selectedCommand = (CommandBase)serviceProvider.GetRequiredService(selectedCommandType);
+            await selectedCommand.RunAsync(subCommandArgs);
+        }
         
         // Protected helpers.
         protected static string GetCommandNameFromType(Type commandType)
@@ -211,17 +190,50 @@ namespace Etherna.GatewayCli.Commands
             }
         
             // Add options.
-            if (CommandOptions.Any())
+            AppendOptionsHelp(strBuilder);
+        
+            // Add print help.
+            strBuilder.AppendLine($"Run '{CommandNamesPath} -h' or '{CommandNamesPath} --help' to print help.");
+            if (IsRootCommand)
+                strBuilder.AppendLine($"Run '{CommandNamesPath} COMMAND -h' or '{CommandNamesPath} COMMAND --help' for more information on a command.");
+            strBuilder.AppendLine();
+        
+            // Print it.
+            var helpOutput = strBuilder.ToString();
+            Console.Write(helpOutput);
+        }
+    }
+    
+    public abstract class CommandBase<TOptions> : CommandBase
+        where TOptions: CommandOptionsBase, new()
+    {
+        // Constructor.
+        protected CommandBase(
+            IServiceProvider serviceProvider)
+            : base(serviceProvider)
+        { }
+        
+        // Properties.
+        public TOptions Options { get; } = new TOptions();
+        
+        // Methods.
+        protected override int ParseOptionArgs(string[] args) => Options.ParseArgs(args);
+
+        protected override void AppendOptionsHelp(StringBuilder strBuilder)
+        {
+            ArgumentNullException.ThrowIfNull(strBuilder, nameof(strBuilder));
+
+            if (Options.Definitions.Any())
             {
                 strBuilder.AppendLine("Options:");
-                var descriptionShift = CommandOptions.Select(opt =>
+                var descriptionShift = Options.Definitions.Select(opt =>
                 {
                     var len = opt.LongName.Length;
                     foreach (var reqArgType in opt.RequiredArgTypes)
                         len += reqArgType.Name.Length + 1;
                     return len;
                 }).Max() + 4;
-                foreach (var option in CommandOptions)
+                foreach (var option in Options.Definitions)
                 {
                     strBuilder.Append("  ");
                     strBuilder.Append(option.ShortName is null ? "    " : $"{option.ShortName}, ");
@@ -238,34 +250,6 @@ namespace Etherna.GatewayCli.Commands
                 }
                 strBuilder.AppendLine();
             }
-        
-            // Add print help.
-            strBuilder.AppendLine($"Run '{CommandNamesPath} -h' or '{CommandNamesPath} --help' to print help.");
-            if (IsRootCommand)
-                strBuilder.AppendLine($"Run '{CommandNamesPath} COMMAND -h' or '{CommandNamesPath} COMMAND --help' for more information on a command.");
-            strBuilder.AppendLine();
-        
-            // Print it.
-            var helpOutput = strBuilder.ToString();
-            Console.Write(helpOutput);
-        }
-
-        private async Task RunSubCommandAsync(string[] commandArgs)
-        {
-            if (commandArgs.Length == 0)
-                throw new ArgumentException("A command name is required");
-            
-            var subCommandName = commandArgs[0];
-            var subCommandArgs = commandArgs[1..];
-
-            var selectedCommandType = AvailableSubCommandTypes.FirstOrDefault(
-                t => GetCommandNameFromType(t) == subCommandName);
-            
-            if (selectedCommandType is null)
-                throw new ArgumentException($"{CommandNamesPath}: '{subCommandName}' is not a valid command.");
-
-            var selectedCommand = (CommandBase)serviceProvider.GetRequiredService(selectedCommandType);
-            await selectedCommand.RunAsync(subCommandArgs);
         }
     }
 }

@@ -12,81 +12,37 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.GatewayCli.Models.Commands;
 using Etherna.GatewayCli.Utilities;
-using Etherna.Sdk.Users.Native;
-using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands
 {
-    public class EthernaCommand : CommandBase
+    public class EthernaCommand : CommandBase<EthernaCommandOptions>
     {
-        // Consts.
-        private static readonly string[] ApiScopes = ["userApi.gateway"];
-
-        // Fields.
-        private readonly IServiceCollection serviceCollection;
-        
-        private string? apiKey;
-        private bool ignoreUpdate;
-        
         // Constructor.
         public EthernaCommand(
-            IServiceCollection serviceCollection)
-            : base(serviceCollection.BuildServiceProvider())
-        {
-            this.serviceCollection = serviceCollection;
-        }
+            IServiceProvider serviceProvider)
+            : base(serviceProvider)
+        { }
         
         // Properties.
-        public override IEnumerable<CommandOption> CommandOptions => new CommandOption[]
-        {
-            new(this, "-k", "--api-key", new[] { typeof(string) }, "Api Key (optional)", args => apiKey = args[0]),
-            new(this, "-i", "--ignore-update", Array.Empty<Type>(), "Ignore new versions of EthernaGatewayCli", _ => ignoreUpdate = true)
-        };
         public override string CommandUsageHelpString => "[OPTIONS] COMMAND";
         public override string Description => "A CLI interface to the Etherna Gateway";
         public override bool IsRootCommand => true;
         
         // Protected methods.
-        protected override async Task RunPreCommandOpsAsync()
+        protected override async Task RunCommandAsync(string[] commandArgs)
         {
+            ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
+            
             // Check for new versions.
             var newVersionAvailable = await EthernaVersionControl.CheckNewVersionAsync();
-            if (newVersionAvailable && !ignoreUpdate)
+            if (newVersionAvailable && !Options.IgnoreUpdate)
                 return;
             
-            // Register etherna service clients.
-            IEthernaUserClientsBuilder ethernaClientsBuilder;
-            if (apiKey is null) //"code" grant flow
-            {
-                ethernaClientsBuilder = serviceCollection.AddEthernaUserClientsWithCodeAuth(
-                    CommonConsts.EthernaSsoUrl,
-                    CommonConsts.EthernaGatewayCliClientId,
-                    null,
-                    11430,
-                    ApiScopes,
-                    CommonConsts.HttpClientName,
-                    c =>
-                    {
-                        c.Timeout = TimeSpan.FromMinutes(30);
-                    });
-            }
-            else //"password" grant flow
-            {
-                ethernaClientsBuilder = serviceCollection.AddEthernaUserClientsWithApiKeyAuth(
-                    CommonConsts.EthernaSsoUrl,
-                    apiKey,
-                    ApiScopes,
-                    CommonConsts.HttpClientName,
-                    c =>
-                    {
-                        c.Timeout = TimeSpan.FromMinutes(30);
-                    });
-            }
-            ethernaClientsBuilder.AddEthernaGatewayClient(new Uri(CommonConsts.EthernaGatewayUrl));
+            await RunSubCommandAsync(commandArgs);
         }
     }
 }

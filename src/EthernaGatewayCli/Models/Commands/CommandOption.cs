@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace Etherna.GatewayCli.Commands
+namespace Etherna.GatewayCli.Models.Commands
 {
     public class CommandOption
     {
@@ -26,7 +26,6 @@ namespace Etherna.GatewayCli.Commands
 
         // Constructor.
         public CommandOption(
-            CommandBase ownerCommand,
             string? shortName,
             string longName,
             IEnumerable<Type> requiredArgTypes,
@@ -39,7 +38,6 @@ namespace Etherna.GatewayCli.Commands
             if (!longNameRegex.IsMatch(longName))
                 throw new ArgumentException("Invalid long option name");
 
-            OwnerCommand = ownerCommand;
             ShortName = shortName;
             LongName = longName;
             RequiredArgTypes = requiredArgTypes;
@@ -52,7 +50,6 @@ namespace Etherna.GatewayCli.Commands
         public Action<string[]> OnFound { get; }
         public string LongName { get; }
         public IEnumerable<Type> RequiredArgTypes { get; }
-        public CommandBase OwnerCommand { get; }
         public string? ShortName { get; }
     }
 }

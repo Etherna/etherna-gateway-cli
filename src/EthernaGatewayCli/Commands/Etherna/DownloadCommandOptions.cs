@@ -14,21 +14,21 @@
 
 using Etherna.GatewayCli.Models.Commands;
 using System;
+using System.Collections.Generic;
 
 namespace Etherna.GatewayCli.Commands.Etherna
 {
-    public class PostageCommand : CommandBase
+    public class DownloadCommandOptions : CommandOptionsBase
     {
-        // Constructor.
-        public PostageCommand(IServiceProvider serviceProvider)
-            : base(serviceProvider)
-        { }
+        // Definitions.
+        public override IEnumerable<CommandOption> Definitions => new CommandOption[]
+        {
+            new("-a", "--anon", Array.Empty<Type>(), "Download resource anonymously", _ => RunAnonymously = true),
+            new("-o", "--output", new[] { typeof(string) }, "Resource output path. Default: current directory", args => OutputPath = args[0])
+        };
         
-        // Properties.
-        public override string CommandUsageHelpString => "<todo>";
-        public override string Description => "Manage postage batches";
-
-        // Methods.
-        protected override int ParseOptionArgs(string[] args) => 0;
+        // Options.
+        public string OutputPath { get; private set; } = Environment.CurrentDirectory;
+        public bool RunAnonymously { get; private set; }
     }
 }

@@ -14,21 +14,21 @@
 
 using Etherna.GatewayCli.Models.Commands;
 using System;
+using System.Collections.Generic;
 
-namespace Etherna.GatewayCli.Commands.Etherna
+namespace Etherna.GatewayCli.Commands
 {
-    public class PostageCommand : CommandBase
+    public class EthernaCommandOptions : CommandOptionsBase
     {
-        // Constructor.
-        public PostageCommand(IServiceProvider serviceProvider)
-            : base(serviceProvider)
-        { }
+        // Definitions.
+        public override IEnumerable<CommandOption> Definitions => new CommandOption[]
+        {
+            new("-k", "--api-key", new[] { typeof(string) }, "Api Key (optional)", args => ApiKey = args[0]),
+            new("-i", "--ignore-update", Array.Empty<Type>(), "Ignore new versions of EthernaGatewayCli", _ => IgnoreUpdate = true)
+        };
         
-        // Properties.
-        public override string CommandUsageHelpString => "<todo>";
-        public override string Description => "Manage postage batches";
-
-        // Methods.
-        protected override int ParseOptionArgs(string[] args) => 0;
+        // Options.
+        public string? ApiKey { get; private set; }
+        public bool IgnoreUpdate{ get; private set; }
     }
 }

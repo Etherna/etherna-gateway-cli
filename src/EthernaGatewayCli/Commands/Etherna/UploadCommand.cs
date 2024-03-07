@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.GatewayCli.Models.Commands;
 using System;
 
 namespace Etherna.GatewayCli.Commands.Etherna

@@ -13,7 +13,10 @@
 //   limitations under the License.
 
 using Etherna.GatewayCli.Commands;
+using Etherna.GatewayCli.Models.Commands;
+using Etherna.Sdk.Users.Native;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -23,6 +26,7 @@ namespace Etherna.GatewayCli
     internal sealed class Program
     {
         // Consts.
+        private static readonly string[] ApiScopes = ["userApi.gateway"];
         private const string CommandsNamespace = "Etherna.GatewayCli.Commands";
         
         // Methods.
@@ -43,8 +47,51 @@ namespace Etherna.GatewayCli
             //services
             services.AddCoreServices();
             
+            /****
+             * WORKAROUND
+             * See: https://etherna.atlassian.net/browse/EAUTH-21
+             * We need to configure the authentication method before of create Service Provider.
+             * Because of this, we decided to run only option parsing upfront, and so instantiate the real command.
+             */
+            var ethernaCommandOptions = new EthernaCommandOptions();
+            ethernaCommandOptions.ParseArgs(args);
+            /* END WORKAROUND
+             ****/
+            
+            // Register etherna service clients.
+            IEthernaUserClientsBuilder ethernaClientsBuilder;
+            if (ethernaCommandOptions.ApiKey is null) //"code" grant flow
+            {
+                ethernaClientsBuilder = services.AddEthernaUserClientsWithCodeAuth(
+                    CommonConsts.EthernaSsoUrl,
+                    CommonConsts.EthernaGatewayCliClientId,
+                    null,
+                    11430,
+                    ApiScopes,
+                    CommonConsts.HttpClientName,
+                    c =>
+                    {
+                        c.Timeout = TimeSpan.FromMinutes(30);
+                    });
+            }
+            else //"password" grant flow
+            {
+                ethernaClientsBuilder = services.AddEthernaUserClientsWithApiKeyAuth(
+                    CommonConsts.EthernaSsoUrl,
+                    ethernaCommandOptions.ApiKey,
+                    ApiScopes,
+                    CommonConsts.HttpClientName,
+                    c =>
+                    {
+                        c.Timeout = TimeSpan.FromMinutes(30);
+                    });
+            }
+            ethernaClientsBuilder.AddEthernaGatewayClient(new Uri(CommonConsts.EthernaGatewayUrl));
+
+            var serviceProvider = services.BuildServiceProvider();
+            
             // Start etherna command.
-            var ethernaCommand = new EthernaCommand(services);
+            var ethernaCommand = serviceProvider.GetRequiredService<EthernaCommand>();
             await ethernaCommand.RunAsync(args);
         }
     }
