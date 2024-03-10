@@ -25,7 +25,6 @@ namespace Etherna.GatewayCli.Commands.Etherna
         { }
         
         // Properties.
-        public override string CommandUsageHelpString => "<todo>";
         public override string Description => "Manage Swarm resources";
 
         // Methods.

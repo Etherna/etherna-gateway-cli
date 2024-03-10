@@ -33,7 +33,7 @@ namespace Etherna.GatewayCli.Commands
         public override bool IsRootCommand => true;
         
         // Protected methods.
-        protected override async Task RunCommandAsync(string[] commandArgs)
+        protected override async Task ExecuteAsync(string[] commandArgs)
         {
             ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
             
@@ -42,7 +42,7 @@ namespace Etherna.GatewayCli.Commands
             if (newVersionAvailable && !Options.IgnoreUpdate)
                 return;
             
-            await RunSubCommandAsync(commandArgs);
+            await ExecuteSubCommandAsync(commandArgs);
         }
     }
 }

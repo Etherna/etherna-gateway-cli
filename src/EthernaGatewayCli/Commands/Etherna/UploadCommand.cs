@@ -43,7 +43,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
         public override string Description => "Upload a file resource to Swarm";
 
         // Methods.
-        protected override async Task RunCommandAsync(string[] commandArgs)
+        protected override async Task ExecuteAsync(string[] commandArgs)
         {
             ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
 

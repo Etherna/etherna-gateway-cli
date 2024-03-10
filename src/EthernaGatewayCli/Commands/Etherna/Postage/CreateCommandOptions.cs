@@ -12,18 +12,20 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.BeeNet.Clients.GatewayApi;
-using System;
+using Etherna.GatewayCli.Models.Commands;
+using System.Collections.Generic;
 
-namespace Etherna.GatewayCli
+namespace Etherna.GatewayCli.Commands.Etherna.Postage
 {
-    public static class CommonConsts
+    public class CreateCommandOptions : CommandOptionsBase
     {
-        public const GatewayApiVersion BeeNodeGatewayVersion = GatewayApiVersion.v5_0_0;
-        public const string EthernaGatewayCliClientId = "689efb99-e2a3-4cb5-ba86-d1e07a71991f";
-        public const string EthernaGatewayUrl = "https://gateway.etherna.io/";
-        public const string EthernaSsoUrl = "https://sso.etherna.io/";
-        public static readonly TimeSpan GnosisBlockTime = TimeSpan.FromSeconds(5);
-        public const string HttpClientName = "ethernaAuthnHttpClient";
+        // Definitions.
+        public override IEnumerable<CommandOption> Definitions => new CommandOption[]
+        {
+            new("-l", "--label", "Set a custom postage batch label", args => Label = args[0], new[] { typeof(string) })
+        };
+
+        // Options.
+        public string? Label { get; private set; }
     }
 }

@@ -68,7 +68,7 @@ namespace Etherna.GatewayCli.Models.Commands
                 return string.Join(' ', parentCommandNames.Append(Name));
             }
         }
-        public abstract string CommandUsageHelpString { get; }
+        public virtual string CommandUsageHelpString => "COMMAND";
         public abstract string Description { get; }
         public virtual bool IsRootCommand => false;
         public string Name => GetCommandNameFromType(GetType());
@@ -85,7 +85,7 @@ namespace Etherna.GatewayCli.Models.Commands
             if (printHelp)
                 PrintHelp();
             else
-                await RunCommandAsync(args[optionArgsCount..]);
+                await ExecuteAsync(args[optionArgsCount..]);
         }
         
         // Protected methods.
@@ -98,13 +98,13 @@ namespace Etherna.GatewayCli.Models.Commands
         /// <returns>Found option args counter</returns>
         protected virtual int ParseOptionArgs(string[] args) => 0;
         
-        protected virtual async Task RunCommandAsync(string[] commandArgs)
+        protected virtual async Task ExecuteAsync(string[] commandArgs)
         {
             ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
-            await RunSubCommandAsync(commandArgs);
+            await ExecuteSubCommandAsync(commandArgs);
         }
 
-        protected async Task RunSubCommandAsync(string[] commandArgs)
+        protected async Task ExecuteSubCommandAsync(string[] commandArgs)
         {
             ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
 

@@ -12,42 +12,53 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.BeeNet.Clients.GatewayApi;
 using Etherna.GatewayCli.Models.Commands;
 using Etherna.GatewayCli.Services;
 using System;
 using System.Threading.Tasks;
 
-namespace Etherna.GatewayCli.Commands.Etherna
+namespace Etherna.GatewayCli.Commands.Etherna.Postage
 {
-    public class DownloadCommand : CommandBase<DownloadCommandOptions>
+    public class CreateCommand : CommandBase<CreateCommandOptions>
     {
         // Fields.
         private readonly IAuthenticationService authService;
-        private readonly IBeeGatewayClient beeGatewayClient;
+        private readonly IGatewayService gatewayService;
 
         // Constructor.
-        public DownloadCommand(
+        public CreateCommand(
             IAuthenticationService authService,
-            IBeeGatewayClient beeGatewayClient,
+            IGatewayService gatewayService,
             IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             this.authService = authService;
-            this.beeGatewayClient = beeGatewayClient;
+            this.gatewayService = gatewayService;
         }
-        
-        // Properties.
-        public override string CommandUsageHelpString => "[OPTIONS] RESOURCE";
-        public override string Description => "Download a resource from Swarm";
 
-        // Protected methods.
+        // Properties.
+        public override string CommandUsageHelpString => "AMOUNT DEPTH";
+        public override string Description => "Create a new postage batch";
+        
+        // Methods.
         protected override async Task ExecuteAsync(string[] commandArgs)
         {
-            if (!Options.RunAnonymously)
-                await authService.SignInAsync();
+            ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
+
+            // Parse args.
+            if (commandArgs.Length != 2)
+                throw new ArgumentException("Create postage batch requires 2 arguments");
+            var amount = long.Parse(commandArgs[0]);
+            var postageDepth = int.Parse(commandArgs[1]);
             
+            // Authenticate user.
+            await authService.SignInAsync();
             
+            // Create postage.
+            var batchId = await gatewayService.CreatePostageBatchAsync(amount, postageDepth);
+            
+            // Print result.
+            Console.WriteLine($"Postage batch id: {batchId}");
         }
     }
 }

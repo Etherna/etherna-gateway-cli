@@ -12,12 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.Sdk.GeneratedClients.Gateway;
+using System;
+using System.Threading.Tasks;
+
 namespace Etherna.GatewayCli.Services
 {
-#pragma warning disable CA1040
     public interface IGatewayService
-#pragma warning restore CA1040
     {
-        
+        Task<string> CreatePostageBatchAsync(long amount, int batchDepth);
+        Task<string> CreatePostageBatchAsync(long contentByteSize, TimeSpan ttlPostageStamp, bool autoPurchase);
+        Task<long> GetCurrentChainPriceAsync();
+        Task<PostageBatchDto> GetPostageBatchInfoAsync(string batchId);
     }
 }
