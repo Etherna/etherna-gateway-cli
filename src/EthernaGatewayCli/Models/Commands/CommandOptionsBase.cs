@@ -22,8 +22,12 @@ namespace Etherna.GatewayCli.Models.Commands
     {
         // Properties.
         public abstract IEnumerable<CommandOption> Definitions { get; }
+        public virtual IEnumerable<string[]> MutualExclusiveOptions => Array.Empty<string[]>();
         
         // Methods.
+        public CommandOption FindOptionByName(string name) =>
+            Definitions.First(o => o.ShortName == name || o.LongName == name);
+        
         /// <summary>
         /// Parse command options
         /// </summary>
@@ -34,7 +38,7 @@ namespace Etherna.GatewayCli.Models.Commands
             ArgumentNullException.ThrowIfNull(args, nameof(args));
             
             var parsedArgsCount = 0;
-            var foundOptions = new List<CommandOption>();
+            var foundOptions = new List<(CommandOption Option, string ArgName)>();
             while (parsedArgsCount < args.Length && args[parsedArgsCount].StartsWith('-'))
             {
                 var optName = args[parsedArgsCount++];
@@ -45,10 +49,26 @@ namespace Etherna.GatewayCli.Models.Commands
                     throw new ArgumentException(optName + " is not a valid option");
                 
                 //verify duplicate options
-                if (foundOptions.Any(opt => opt.ShortName == optName || opt.LongName == optName))
+                if (foundOptions.Any(opt => opt.Option.ShortName == optName || opt.Option.LongName == optName))
                     throw new ArgumentException(optName + " option is duplicate");
-                foundOptions.Add(foundOption);
+                foundOptions.Add((foundOption, optName));
                 
+                //verify mutual exclusivity
+                /* Verify if exists tuple of mutual exclusive options where all of its options has been found */
+                foreach (var invalidTuple in MutualExclusiveOptions)
+                {
+                    if (invalidTuple.All(tupleOptName => foundOptions.Any(o =>
+                            o.Option.ShortName == tupleOptName || o.Option.LongName == tupleOptName)))
+                    {
+                        var invalidFoundTupleArgs = foundOptions.Where(foundOpt =>
+                            invalidTuple.Contains(foundOpt.Option.ShortName) ||
+                            invalidTuple.Contains(foundOpt.Option.LongName))
+                            .Select(foundOpt => foundOpt.ArgName);
+                        
+                        throw new ArgumentException($"Invalid options: {string.Join(", ", invalidFoundTupleArgs)} are mutual exclusive");
+                    }
+                }
+
                 //check required args
                 if (args.Length - parsedArgsCount < foundOption.RequiredArgTypes.Count())
                     throw new ArgumentException($"{optName} requires {foundOption.RequiredArgTypes.Count()} args: {string.Join(" ", foundOption.RequiredArgTypes.Select(t => t.Name.ToLower()))}");

@@ -23,8 +23,8 @@ namespace Etherna.GatewayCli.Commands
         // Definitions.
         public override IEnumerable<CommandOption> Definitions => new CommandOption[]
         {
-            new("-k", "--api-key", new[] { typeof(string) }, "Api Key (optional)", args => ApiKey = args[0]),
-            new("-i", "--ignore-update", Array.Empty<Type>(), "Ignore new versions of EthernaGatewayCli", _ => IgnoreUpdate = true)
+            new("-k", "--api-key", "Api Key (optional)", args => ApiKey = args[0], new[] { typeof(string) }),
+            new("-i", "--ignore-update", "Ignore new versions of EthernaGatewayCli", _ => IgnoreUpdate = true)
         };
         
         // Options.

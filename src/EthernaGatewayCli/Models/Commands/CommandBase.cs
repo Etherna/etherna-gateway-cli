@@ -223,30 +223,42 @@ namespace Etherna.GatewayCli.Models.Commands
         {
             ArgumentNullException.ThrowIfNull(strBuilder, nameof(strBuilder));
 
-            if (Options.Definitions.Any())
+            if (!Options.Definitions.Any()) return;
+            
+            //option descriptions
+            strBuilder.AppendLine("Options:");
+            var descriptionShift = Options.Definitions.Select(opt =>
             {
-                strBuilder.AppendLine("Options:");
-                var descriptionShift = Options.Definitions.Select(opt =>
+                var len = opt.LongName.Length;
+                foreach (var reqArgType in opt.RequiredArgTypes)
+                    len += reqArgType.Name.Length + 1;
+                return len;
+            }).Max() + 4;
+            foreach (var option in Options.Definitions)
+            {
+                strBuilder.Append("  ");
+                strBuilder.Append(option.ShortName is null ? "    " : $"{option.ShortName}, ");
+                strBuilder.Append(option.LongName);
+                var strLen = option.LongName.Length;
+                foreach (var reqArgType in option.RequiredArgTypes)
                 {
-                    var len = opt.LongName.Length;
-                    foreach (var reqArgType in opt.RequiredArgTypes)
-                        len += reqArgType.Name.Length + 1;
-                    return len;
-                }).Max() + 4;
-                foreach (var option in Options.Definitions)
+                    strBuilder.Append($" {reqArgType.Name.ToLower()}");
+                    strLen += reqArgType.Name.Length + 1;
+                }
+                for (int i = 0; i < descriptionShift - strLen; i++)
+                    strBuilder.Append(' ');
+                strBuilder.AppendLine(option.Description);
+            }
+            strBuilder.AppendLine();
+                
+            //mutual exclusive options
+            if (Options.MutualExclusiveOptions.Any())
+            {
+                strBuilder.AppendLine("Mutual exclusive options:");
+                foreach (var invalidOptionNamesTuple in Options.MutualExclusiveOptions)
                 {
-                    strBuilder.Append("  ");
-                    strBuilder.Append(option.ShortName is null ? "    " : $"{option.ShortName}, ");
-                    strBuilder.Append(option.LongName);
-                    var strLen = option.LongName.Length;
-                    foreach (var reqArgType in option.RequiredArgTypes)
-                    {
-                        strBuilder.Append($" {reqArgType.Name.ToLower()}");
-                        strLen += reqArgType.Name.Length + 1;
-                    }
-                    for (int i = 0; i < descriptionShift - strLen; i++)
-                        strBuilder.Append(' ');
-                    strBuilder.AppendLine(option.Description);
+                    strBuilder.AppendLine(
+                        $"  {string.Join(", ", invalidOptionNamesTuple.Select(n => Options.FindOptionByName(n).LongName))} together are invalid.");
                 }
                 strBuilder.AppendLine();
             }

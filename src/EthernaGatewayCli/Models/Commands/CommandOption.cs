@@ -28,9 +28,9 @@ namespace Etherna.GatewayCli.Models.Commands
         public CommandOption(
             string? shortName,
             string longName,
-            IEnumerable<Type> requiredArgTypes,
             string description,
-            Action<string[]> onFound)
+            Action<string[]> onFound,
+            IEnumerable<Type>? requiredArgTypes = null)
         {
             if (shortName != null && !shortNameRegex.IsMatch(shortName))
                 throw new ArgumentException("Invalid short option name");
@@ -40,7 +40,7 @@ namespace Etherna.GatewayCli.Models.Commands
 
             ShortName = shortName;
             LongName = longName;
-            RequiredArgTypes = requiredArgTypes;
+            RequiredArgTypes = requiredArgTypes ?? Array.Empty<Type>();
             Description = description;
             OnFound = onFound;
         }

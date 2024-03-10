@@ -23,8 +23,8 @@ namespace Etherna.GatewayCli.Commands.Etherna
         // Definitions.
         public override IEnumerable<CommandOption> Definitions => new CommandOption[]
         {
-            new("-a", "--anon", Array.Empty<Type>(), "Download resource anonymously", _ => RunAnonymously = true),
-            new("-o", "--output", new[] { typeof(string) }, "Resource output path. Default: current directory", args => OutputPath = args[0])
+            new("-a", "--anon", "Download resource anonymously", _ => RunAnonymously = true),
+            new("-o", "--output", "Resource output path. Default: current directory", args => OutputPath = args[0], new[] { typeof(string) })
         };
         
         // Options.

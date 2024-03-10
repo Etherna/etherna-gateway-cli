@@ -22,14 +22,18 @@ namespace Etherna.GatewayCli.Commands.Etherna
     {
         // Consts.
         public const int DefaultTtlDays = 365;
-        
+
         // Definitions.
         public override IEnumerable<CommandOption> Definitions => new CommandOption[]
         {
-            new(null, "--postage", new[]{typeof(string)}, "Use an existing postage batch. Create a new otherwise", args => UseExistingPostageBatch = args[0]),
-            new("-t", "--ttl", new[] { typeof(int) }, $"TTL (days) Postage Stamp (default: {DefaultTtlDays} days)", args => TtlDays = int.Parse(args[0])),
-            new("-o", "--offer", Array.Empty<Type>(), "Offer resource downloads to everyone", _ => OfferDownload = true),
-            new(null, "--no-pin", Array.Empty<Type>(), "Don't pin resource (pinning by default)", _ => PinResource = false)
+            new(null, "--postage", "Use an existing postage batch. Create a new otherwise", args => UseExistingPostageBatch = args[0], new[] { typeof(string) }),
+            new("-t", "--ttl", $"TTL (days) Postage Stamp (default: {DefaultTtlDays} days)", args => TtlDays = int.Parse(args[0]), new[] { typeof(int) }),
+            new("-o", "--offer", "Offer resource downloads to everyone", _ => OfferDownload = true),
+            new(null, "--no-pin", "Don't pin resource (pinning by default)", _ => PinResource = false)
+        };
+        public override IEnumerable<string[]> MutualExclusiveOptions => new[]
+        {
+            new[] { "--postage", "--ttl" }
         };
 
         // Options.
