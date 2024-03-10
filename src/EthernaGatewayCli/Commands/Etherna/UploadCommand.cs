@@ -14,6 +14,8 @@
 
 using Etherna.GatewayCli.Models.Commands;
 using Etherna.GatewayCli.Services;
+using Etherna.Sdk.GeneratedClients.Gateway;
+using Etherna.Sdk.Users;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -23,18 +25,21 @@ namespace Etherna.GatewayCli.Commands.Etherna
     public class UploadCommand : CommandBase<UploadCommandOptions>
     {
         private readonly IAuthenticationService authService;
+        private readonly IEthernaUserGatewayClient ethernaGatewayClient;
 
         // Constructor.
         public UploadCommand(
             IAuthenticationService authService,
+            IEthernaUserGatewayClient ethernaGatewayClient,
             IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             this.authService = authService;
+            this.ethernaGatewayClient = ethernaGatewayClient;
         }
         
         // Properties.
-        public override string CommandUsageHelpString => "[OPTIONS] SOURCE_FILE";
+        public override string CommandUsageHelpString => "[OPTIONS] SOURCE_FILE [SOURCE_FILE ...]";
         public override string Description => "Upload a file resource to Swarm";
 
         // Methods.
@@ -43,25 +48,48 @@ namespace Etherna.GatewayCli.Commands.Etherna
             ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
 
             // Parse args.
-            if (commandArgs.Length != 1)
-                throw new ArgumentException("Upload requires exactly 1 argument");
+            if (commandArgs.Length < 1)
+                throw new ArgumentException("Upload requires 1 or more arguments");
+            var filePaths = commandArgs;
             
-            // Search file.
-            var filePath = commandArgs[0];
-            if (!File.Exists(filePath))
-                throw new InvalidOperationException($"File {filePath} doesn't exist");
+            // Search files.
+            foreach (var filePath in filePaths)
+                if (!File.Exists(filePath))
+                    throw new InvalidOperationException($"File {filePath} doesn't exist");
             
             // Authenticate user.
             await authService.SignInAsync();
             
             // Identify postage batch to use.
+            PostageBatchDto postageBatch;
             if (Options.UseExistingPostageBatch is null)
             {
                 //create a new postage batch
             }
             else
             {
-                //validate existing postage batch
+                //get info about existing postage batch
+                try
+                {
+                    postageBatch = await ethernaGatewayClient.UsersClient.BatchesGetAsync(Options.UseExistingPostageBatch);
+                }
+                catch (EthernaGatewayApiException e)
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    Console.WriteLine($"Unable to find postage batch \"{Options.UseExistingPostageBatch}\".");
+                    Console.WriteLine($"Error: {e.Message}");
+                    Console.ResetColor();
+                    throw;
+                }
+                
+                //verify if it is usable
+                if (!postageBatch.Usable)
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    Console.WriteLine($"Postage batch \"{Options.UseExistingPostageBatch}\" is not usable.");
+                    Console.ResetColor();
+                    throw new InvalidOperationException($"Not usable postage batch: \"{Options.UseExistingPostageBatch}\"");
+                }
             }
             
             // Upload file.
