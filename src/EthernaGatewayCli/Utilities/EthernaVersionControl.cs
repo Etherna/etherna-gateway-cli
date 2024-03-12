@@ -49,7 +49,6 @@ namespace Etherna.GatewayCli.Utilities
         public static async Task<bool> CheckNewVersionAsync()
         {
             // Get current version.
-            Console.WriteLine();
             Console.WriteLine($"Etherna Gateway CLI (v{CurrentVersion})");
             Console.WriteLine();
 
