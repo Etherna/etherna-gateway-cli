@@ -40,7 +40,13 @@ namespace Etherna.GatewayCli.Services
         }
 
         // Methods.
-        public async Task<string> CreatePostageBatchAsync(long amount, int batchDepth)
+        public async Task<long> CalculateAmountAsync(TimeSpan ttl)
+        {
+            var currentPrice = await GetCurrentChainPriceAsync();
+            return (long)(ttl.TotalSeconds * currentPrice / CommonConsts.GnosisBlockTime.TotalSeconds);
+        }
+
+        public async Task<string> CreatePostageBatchAsync(long amount, int batchDepth, string? label)
         {
             if (amount <= 0)
                 throw new ArgumentException("Amount must be positive");
@@ -50,7 +56,7 @@ namespace Etherna.GatewayCli.Services
             // Start creation.
             var bzzPrice = amount * Math.Pow(2, batchDepth) / BzzDecimalPlacesToUnit;
             Console.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
-            var batchReferenceId = await ethernaGatewayClient.UsersClient.BatchesPostAsync(batchDepth, amount);
+            var batchReferenceId = await ethernaGatewayClient.UsersClient.BatchesPostAsync(batchDepth, amount, label);
 
             // Wait until created batch is available.
             Console.Write("Waiting for batch created... (it may take a while)");
@@ -85,7 +91,7 @@ namespace Etherna.GatewayCli.Services
             return batchId;
         }
         
-        public async Task<string> CreatePostageBatchFromContentAsync(long contentByteSize, TimeSpan ttlPostageStamp, bool autoPurchase)
+        public async Task<string> CreatePostageBatchFromContentAsync(long contentByteSize, TimeSpan ttlPostageStamp, string? label, bool autoPurchase)
         {
             //calculate batch depth
             var batchDepth = 17;
@@ -93,8 +99,7 @@ namespace Etherna.GatewayCli.Services
                 batchDepth++;
 
             //calculate amount
-            var currentPrice = await GetCurrentChainPriceAsync();
-            var amount = (long)(ttlPostageStamp.TotalSeconds * currentPrice / CommonConsts.GnosisBlockTime.TotalSeconds);
+            var amount = await CalculateAmountAsync(ttlPostageStamp);
             var bzzPrice = amount * Math.Pow(2, batchDepth) / BzzDecimalPlacesToUnit;
 
             Console.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
@@ -123,7 +128,7 @@ namespace Etherna.GatewayCli.Services
             }
 
             //create batch
-            var batchId = await CreatePostageBatchAsync(amount, batchDepth);
+            var batchId = await CreatePostageBatchAsync(amount, batchDepth, label);
 
             Console.WriteLine($"Created postage batch: {batchId}");
 

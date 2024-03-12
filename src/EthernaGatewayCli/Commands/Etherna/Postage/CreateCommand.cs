@@ -37,7 +37,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         }
 
         // Properties.
-        public override string CommandUsageHelpString => "AMOUNT DEPTH";
+        public override string CommandUsageHelpString => "OPTIONS";
         public override string Description => "Create a new postage batch";
         
         // Methods.
@@ -46,18 +46,20 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
             ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
 
             // Parse args.
-            if (commandArgs.Length != 2)
-                throw new ArgumentException("Create postage batch requires 2 arguments");
-            var amount = long.Parse(commandArgs[0]);
-            var postageDepth = int.Parse(commandArgs[1]);
+            if (commandArgs.Length != 0)
+                throw new ArgumentException("Create postage batch doesn't receive arguments");
             
             // Authenticate user.
             await authService.SignInAsync();
             
             // Create postage.
-            var batchId = await gatewayService.CreatePostageBatchAsync(amount, postageDepth);
+            var amount = Options.Amount ?? (Options.Ttl.HasValue
+                 ? await gatewayService.CalculateAmountAsync(Options.Ttl.Value)
+                 : throw new InvalidOperationException("Amount ot ttl are required"));
+            var batchId = await gatewayService.CreatePostageBatchAsync(amount, Options.Depth, Options.Label);
             
             // Print result.
+            Console.WriteLine();
             Console.WriteLine($"Postage batch id: {batchId}");
         }
     }

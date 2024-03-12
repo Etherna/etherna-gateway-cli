@@ -13,6 +13,8 @@
 //   limitations under the License.
 
 using Etherna.GatewayCli.Models.Commands;
+using Etherna.GatewayCli.Models.Commands.OptionRequirements;
+using System;
 using System.Collections.Generic;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Postage
@@ -22,10 +24,22 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         // Definitions.
         public override IEnumerable<CommandOption> Definitions => new CommandOption[]
         {
-            new("-l", "--label", "Set a custom postage batch label", args => Label = args[0], new[] { typeof(string) })
+            new("-a", "--amount", "Specify the amount to use", args => Amount = long.Parse(args[0]), [typeof(long)]),
+            new("-d", "--depth", "Specify the postage batch depth", args => Depth = int.Parse(args[0]), [typeof(int)]), 
+            new("-l", "--label", "Set a custom postage batch label", args => Label = args[0], [typeof(string)]),
+            new("-t", "--ttl", "Specify the time to live to obtain in days", args => Ttl = TimeSpan.FromDays(int.Parse(args[0])), [typeof(int)])
+        };
+        public override IEnumerable<OptionRequirementBase> Requirements => new OptionRequirementBase[]
+        {
+            new ExclusiveOptionRequirement("--amount", "--ttl"),
+            new RequiredOptionRequirement("--amount", "--ttl"),
+            new RequiredOptionRequirement("--depth")
         };
 
         // Options.
+        public long? Amount { get; private set; }
+        public int Depth { get; private set; }
         public string? Label { get; private set; }
+        public TimeSpan? Ttl { get; private set; }
     }
 }
