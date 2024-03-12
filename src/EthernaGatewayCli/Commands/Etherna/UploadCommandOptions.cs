@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.GatewayCli.Models.Commands;
+using Etherna.GatewayCli.Models.Commands.OptionRequirements;
 using System;
 using System.Collections.Generic;
 
@@ -31,9 +32,9 @@ namespace Etherna.GatewayCli.Commands.Etherna
             new("-o", "--offer", "Offer resource downloads to everyone", _ => OfferDownload = true),
             new(null, "--no-pin", "Don't pin resource (pinning by default)", _ => PinResource = false)
         };
-        public override IEnumerable<string[]> MutualExclusiveOptions => new[]
+        public override IEnumerable<OptionRequirementBase> Requirements => new[]
         {
-            new[] { "--postage", "--ttl" }
+            new ExclusiveOptionRequirement("--postage", "--ttl")
         };
 
         // Options.

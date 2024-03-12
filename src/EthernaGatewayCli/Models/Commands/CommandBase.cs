@@ -225,7 +225,7 @@ namespace Etherna.GatewayCli.Models.Commands
 
             if (!Options.Definitions.Any()) return;
             
-            //option descriptions
+            // Option descriptions.
             strBuilder.AppendLine("Options:");
             var descriptionShift = Options.Definitions.Select(opt =>
             {
@@ -251,15 +251,12 @@ namespace Etherna.GatewayCli.Models.Commands
             }
             strBuilder.AppendLine();
                 
-            //mutual exclusive options
-            if (Options.MutualExclusiveOptions.Any())
+            // Requirements.
+            if (Options.Requirements.Any())
             {
-                strBuilder.AppendLine("Mutual exclusive options:");
-                foreach (var invalidOptionNamesTuple in Options.MutualExclusiveOptions)
-                {
-                    strBuilder.AppendLine(
-                        $"  {string.Join(", ", invalidOptionNamesTuple.Select(n => Options.FindOptionByName(n).LongName))} together are invalid.");
-                }
+                strBuilder.AppendLine("Option requirements:");
+                foreach (var requirement in Options.Requirements)
+                    strBuilder.AppendLine("  " + requirement.PrintHelpLine(Options));
                 strBuilder.AppendLine();
             }
         }

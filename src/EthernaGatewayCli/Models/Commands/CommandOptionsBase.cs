@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.GatewayCli.Models.Commands.OptionRequirements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace Etherna.GatewayCli.Models.Commands
     {
         // Properties.
         public abstract IEnumerable<CommandOption> Definitions { get; }
-        public virtual IEnumerable<string[]> MutualExclusiveOptions => Array.Empty<string[]>();
+        public virtual IEnumerable<OptionRequirementBase> Requirements => Array.Empty<OptionRequirementBase>();
         
         // Methods.
         public CommandOption FindOptionByName(string name) =>
@@ -37,46 +38,46 @@ namespace Etherna.GatewayCli.Models.Commands
         {
             ArgumentNullException.ThrowIfNull(args, nameof(args));
             
+            // Parse options.
             var parsedArgsCount = 0;
-            var foundOptions = new List<(CommandOption Option, string ArgName)>();
+            var foundOptions = new List<ParsedOption>();
             while (parsedArgsCount < args.Length && args[parsedArgsCount].StartsWith('-'))
             {
                 var optName = args[parsedArgsCount++];
                 
-                //find option with name
+                // Find option by name.
                 var foundOption = Definitions.FirstOrDefault(opt => opt.ShortName == optName || opt.LongName == optName);
                 if (foundOption is null)
                     throw new ArgumentException(optName + " is not a valid option");
                 
-                //verify duplicate options
+                // Verify duplicate options.
                 if (foundOptions.Any(opt => opt.Option.ShortName == optName || opt.Option.LongName == optName))
                     throw new ArgumentException(optName + " option is duplicate");
-                foundOptions.Add((foundOption, optName));
-                
-                //verify mutual exclusivity
-                /* Verify if exists tuple of mutual exclusive options where all of its options has been found */
-                foreach (var invalidTuple in MutualExclusiveOptions)
-                {
-                    if (invalidTuple.All(tupleOptName => foundOptions.Any(o =>
-                            o.Option.ShortName == tupleOptName || o.Option.LongName == tupleOptName)))
-                    {
-                        var invalidFoundTupleArgs = foundOptions.Where(foundOpt =>
-                            invalidTuple.Contains(foundOpt.Option.ShortName) ||
-                            invalidTuple.Contains(foundOpt.Option.LongName))
-                            .Select(foundOpt => foundOpt.ArgName);
-                        
-                        throw new ArgumentException($"Invalid options: {string.Join(", ", invalidFoundTupleArgs)} are mutual exclusive");
-                    }
-                }
 
-                //check required args
+                // Check required option args.
                 if (args.Length - parsedArgsCount < foundOption.RequiredArgTypes.Count())
                     throw new ArgumentException($"{optName} requires {foundOption.RequiredArgTypes.Count()} args: {string.Join(" ", foundOption.RequiredArgTypes.Select(t => t.Name.ToLower()))}");
                 
-                //exec option code
+                // Exec option code.
                 var requiredOptArgs = args[parsedArgsCount..(parsedArgsCount + foundOption.RequiredArgTypes.Count())];
                 parsedArgsCount += requiredOptArgs.Length;
                 foundOption.OnFound(requiredOptArgs);
+                
+                // Save on found options.
+                foundOptions.Add(new(foundOption, optName, requiredOptArgs));
+            }
+            
+            // Verify option requirements.
+            var optionErrors = Requirements.SelectMany(r => r.ValidateOptions(this, foundOptions)).ToArray();
+            if (optionErrors.Length != 0)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.WriteLine($"Invalid options:");
+                foreach (var error in optionErrors)
+                    Console.WriteLine("  " + error.Message);
+                Console.ResetColor();
+
+                throw new ArgumentException("Errors with command options");
             }
 
             return parsedArgsCount;
