@@ -14,6 +14,7 @@
 
 using Etherna.GatewayCli.Models.Commands;
 using Etherna.GatewayCli.Services;
+using Etherna.Sdk.GeneratedClients.Gateway;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -52,16 +53,24 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
             // Parse args.
             if (commandArgs.Length != 1)
                 throw new ArgumentException("Get postage batch info requires exactly 1 argument");
-            
+
             // Authenticate user.
             await authService.SignInAsync();
 
             // Get postage info
-            var postageBatch = await gatewayService.GetPostageBatchInfoAsync(commandArgs[0]);
-            
+            PostageBatchDto? postageBatch = null;
+            try
+            {
+                postageBatch = await gatewayService.GetPostageBatchInfoAsync(commandArgs[0]);
+            }
+            catch (EthernaGatewayApiException e) when (e.StatusCode == 404)
+            { }
+
             // Print result.
             Console.WriteLine();
-            Console.WriteLine(JsonSerializer.Serialize(postageBatch, SerializerOptions));
+            Console.WriteLine(postageBatch is null
+                ? "Postage batch not found."
+                : JsonSerializer.Serialize(postageBatch, SerializerOptions));
         }
     }
 }
