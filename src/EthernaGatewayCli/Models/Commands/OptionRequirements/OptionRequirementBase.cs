@@ -32,10 +32,15 @@ namespace Etherna.GatewayCli.Models.Commands.OptionRequirements
             IEnumerable<ParsedOption> parsedOptions);
         
         // Protected helpers.
-        protected static bool ParsedOptionsContain(
+        protected static bool TryFindParsedOption(
             IEnumerable<ParsedOption> parsedOptions,
-            string optionName) => parsedOptions.Any(parsOpt =>
+            string optionName,
+            out ParsedOption? foundParsedOption)
+        {
+            foundParsedOption = parsedOptions.SingleOrDefault(parsOpt =>
                 parsOpt.Option.ShortName == optionName ||
                 parsOpt.Option.LongName == optionName);
+            return foundParsedOption != null;
+        }
     }
 }

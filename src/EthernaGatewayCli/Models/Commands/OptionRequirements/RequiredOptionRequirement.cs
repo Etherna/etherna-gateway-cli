@@ -28,7 +28,7 @@ namespace Etherna.GatewayCli.Models.Commands.OptionRequirements
         public override IEnumerable<OptionRequirementError> ValidateOptions(
             CommandOptionsBase commandOptions,
             IEnumerable<ParsedOption> parsedOptions) =>
-            OptionsNames.Any(optName => ParsedOptionsContain(parsedOptions, optName)) ?
+            OptionsNames.Any(optName => TryFindParsedOption(parsedOptions, optName, out _)) ?
                 Array.Empty<OptionRequirementError>() :
                 [new OptionRequirementError(PrintHelpLine(commandOptions))];
     }

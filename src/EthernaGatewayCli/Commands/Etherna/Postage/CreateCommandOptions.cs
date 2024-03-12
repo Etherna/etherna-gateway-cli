@@ -33,7 +33,9 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         {
             new ExclusiveOptionRequirement("--amount", "--ttl"),
             new RequiredOptionRequirement("--amount", "--ttl"),
-            new RequiredOptionRequirement("--depth")
+            new RequiredOptionRequirement("--depth"),
+            new MinOptionRequirement("--depth", 17),
+            new MinOptionRequirement("--ttl", 1)
         };
 
         // Options.

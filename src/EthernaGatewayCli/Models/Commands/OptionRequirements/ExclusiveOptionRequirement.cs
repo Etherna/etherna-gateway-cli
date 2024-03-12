@@ -29,7 +29,7 @@ namespace Etherna.GatewayCli.Models.Commands.OptionRequirements
             CommandOptionsBase commandOptions,
             IEnumerable<ParsedOption> parsedOptions)
         {
-            if (OptionsNames.All(optName => ParsedOptionsContain(parsedOptions, optName)))
+            if (OptionsNames.Count(optName => TryFindParsedOption(parsedOptions, optName, out _)) >= 2)
             {
                 var invalidParsedNames = parsedOptions.Where(parsedOpt =>
                         OptionsNames.Contains(parsedOpt.Option.ShortName) ||
