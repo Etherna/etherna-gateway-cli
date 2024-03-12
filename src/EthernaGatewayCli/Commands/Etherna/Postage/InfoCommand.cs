@@ -13,17 +13,55 @@
 //   limitations under the License.
 
 using Etherna.GatewayCli.Models.Commands;
+using Etherna.GatewayCli.Services;
 using System;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Postage
 {
     public class InfoCommand : CommandBase
     {
-        public InfoCommand(IServiceProvider serviceProvider)
-            : base(serviceProvider)
-        { }
+        // Consts.
+        private static readonly JsonSerializerOptions SerializerOptions = new() { WriteIndented = true };
+        
+        // Fields.
+        private readonly IAuthenticationService authService;
+        private readonly IGatewayService gatewayService;
 
+        // Constructor.
+        public InfoCommand(
+            IAuthenticationService authService,
+            IGatewayService gatewayService,
+            IServiceProvider serviceProvider)
+            : base(serviceProvider)
+        {
+            this.authService = authService;
+            this.gatewayService = gatewayService;
+        }
+
+        // Properties.
         public override string Description => "Get info about a postage batch";
         public override string CommandUsageHelpString => "POSTAGE_ID";
+        
+        // Methods.
+        protected override async Task ExecuteAsync(string[] commandArgs)
+        {
+            ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
+
+            // Parse args.
+            if (commandArgs.Length != 1)
+                throw new ArgumentException("Get postage batch info requires exactly 1 argument");
+            
+            // Authenticate user.
+            await authService.SignInAsync();
+
+            // Get postage info
+            var postageBatch = await gatewayService.GetPostageBatchInfoAsync(commandArgs[0]);
+            
+            // Print result.
+            Console.WriteLine();
+            Console.WriteLine(JsonSerializer.Serialize(postageBatch, SerializerOptions));
+        }
     }
 }
