@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.GatewayCli.Models.Domain;
 using Etherna.Sdk.GeneratedClients.Gateway;
 using Etherna.Sdk.Users;
 using System;
@@ -46,6 +47,17 @@ namespace Etherna.GatewayCli.Services
             return (long)(ttl.TotalSeconds * currentPrice / CommonConsts.GnosisBlockTime.TotalSeconds);
         }
 
+        public int CalculateDepth(long contentByteSize)
+        {
+            var batchDepth = 17;
+            while (Math.Pow(2, batchDepth) * ChunkByteSize < contentByteSize * 1.2) //keep 20% of tolerance
+                batchDepth++;
+            return batchDepth;
+        }
+
+        public BzzBalance CalculateBzzPrice(long amount, int depth) =>
+            amount * Math.Pow(2, depth) / BzzDecimalPlacesToUnit;
+
         public async Task<string> CreatePostageBatchAsync(long amount, int batchDepth, string? label)
         {
             if (amount <= 0)
@@ -54,7 +66,7 @@ namespace Etherna.GatewayCli.Services
                 throw new ArgumentException($"Postage depth must be at least {MinBatchDepth}");
             
             // Start creation.
-            var bzzPrice = amount * Math.Pow(2, batchDepth) / BzzDecimalPlacesToUnit;
+            var bzzPrice = CalculateBzzPrice(amount, batchDepth);
             Console.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
             var batchReferenceId = await ethernaGatewayClient.UsersClient.BatchesPostAsync(batchDepth, amount, label);
 
@@ -93,14 +105,9 @@ namespace Etherna.GatewayCli.Services
         
         public async Task<string> CreatePostageBatchFromContentAsync(long contentByteSize, TimeSpan ttlPostageStamp, string? label, bool autoPurchase)
         {
-            //calculate batch depth
-            var batchDepth = 17;
-            while (Math.Pow(2, batchDepth) * ChunkByteSize < contentByteSize * 1.2) //keep 20% of tolerance
-                batchDepth++;
-
-            //calculate amount
+            var batchDepth = CalculateDepth(contentByteSize);
             var amount = await CalculateAmountAsync(ttlPostageStamp);
-            var bzzPrice = amount * Math.Pow(2, batchDepth) / BzzDecimalPlacesToUnit;
+            var bzzPrice = CalculateBzzPrice(amount, batchDepth);
 
             Console.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
 

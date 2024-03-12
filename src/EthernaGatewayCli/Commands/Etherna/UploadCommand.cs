@@ -73,7 +73,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 {
                     postageBatch = await ethernaGatewayClient.UsersClient.BatchesGetAsync(Options.UseExistingPostageBatch);
                 }
-                catch (EthernaGatewayApiException e)
+                catch (EthernaGatewayApiException e) when (e.StatusCode == 404)
                 {
                     Console.ForegroundColor = ConsoleColor.DarkRed;
                     Console.WriteLine($"Unable to find postage batch \"{Options.UseExistingPostageBatch}\".");

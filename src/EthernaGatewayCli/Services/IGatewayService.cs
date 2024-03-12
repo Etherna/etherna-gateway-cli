@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.GatewayCli.Models.Domain;
 using Etherna.Sdk.GeneratedClients.Gateway;
 using System;
 using System.Threading.Tasks;
@@ -21,6 +22,8 @@ namespace Etherna.GatewayCli.Services
     public interface IGatewayService
     {
         Task<long> CalculateAmountAsync(TimeSpan ttl);
+        int CalculateDepth(long contentByteSize);
+        BzzBalance CalculateBzzPrice(long amount, int depth);
         Task<string> CreatePostageBatchAsync(long amount, int batchDepth, string? label);
         Task<string> CreatePostageBatchFromContentAsync(long contentByteSize, TimeSpan ttlPostageStamp, string? label, bool autoPurchase);
         Task<long> GetCurrentChainPriceAsync();
