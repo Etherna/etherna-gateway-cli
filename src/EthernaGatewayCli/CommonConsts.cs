@@ -20,7 +20,7 @@ namespace Etherna.GatewayCli
     public static class CommonConsts
     {
         public const GatewayApiVersion BeeNodeGatewayVersion = GatewayApiVersion.v5_0_0;
-        public const string EthernaGatewayCliClientId = "689efb99-e2a3-4cb5-ba86-d1e07a71991f";
+        public const string EthernaGatewayCliClientId = "ethernaGatewayCliId";
         public const string EthernaGatewayUrl = "https://gateway.etherna.io/";
         public const string EthernaSsoUrl = "https://sso.etherna.io/";
         public static readonly TimeSpan GnosisBlockTime = TimeSpan.FromSeconds(5);

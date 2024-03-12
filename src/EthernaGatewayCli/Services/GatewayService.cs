@@ -47,6 +47,9 @@ namespace Etherna.GatewayCli.Services
             if (batchDepth < MinBatchDepth)
                 throw new ArgumentException($"Postage depth must be at least {MinBatchDepth}");
             
+            // Start creation.
+            var bzzPrice = amount * Math.Pow(2, batchDepth) / BzzDecimalPlacesToUnit;
+            Console.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
             var batchReferenceId = await ethernaGatewayClient.UsersClient.BatchesPostAsync(batchDepth, amount);
 
             // Wait until created batch is available.
@@ -82,7 +85,7 @@ namespace Etherna.GatewayCli.Services
             return batchId;
         }
         
-        public async Task<string> CreatePostageBatchAsync(long contentByteSize, TimeSpan ttlPostageStamp, bool autoPurchase)
+        public async Task<string> CreatePostageBatchFromContentAsync(long contentByteSize, TimeSpan ttlPostageStamp, bool autoPurchase)
         {
             //calculate batch depth
             var batchDepth = 17;
@@ -94,7 +97,7 @@ namespace Etherna.GatewayCli.Services
             var amount = (long)(ttlPostageStamp.TotalSeconds * currentPrice / CommonConsts.GnosisBlockTime.TotalSeconds);
             var bzzPrice = amount * Math.Pow(2, batchDepth) / BzzDecimalPlacesToUnit;
 
-            Console.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
+            Console.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
 
             if (!autoPurchase)
             {

@@ -21,7 +21,7 @@ namespace Etherna.GatewayCli.Services
     public interface IGatewayService
     {
         Task<string> CreatePostageBatchAsync(long amount, int batchDepth);
-        Task<string> CreatePostageBatchAsync(long contentByteSize, TimeSpan ttlPostageStamp, bool autoPurchase);
+        Task<string> CreatePostageBatchFromContentAsync(long contentByteSize, TimeSpan ttlPostageStamp, bool autoPurchase);
         Task<long> GetCurrentChainPriceAsync();
         Task<PostageBatchDto> GetPostageBatchInfoAsync(string batchId);
     }
