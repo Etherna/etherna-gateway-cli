@@ -12,22 +12,17 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.GatewayCli.Models.Commands;
-using Etherna.GatewayCli.Services;
 using System;
 
-namespace Etherna.GatewayCli.Commands.Etherna
+namespace Etherna.GatewayCli.Services
 {
-    public class PostageCommand : CommandBase
+    public interface IIoService
     {
-        // Constructor.
-        public PostageCommand(
-            IIoService ioService,
-            IServiceProvider serviceProvider)
-            : base(ioService, serviceProvider)
-        { }
-        
-        // Properties.
-        public override string Description => "Manage postage batches";
+        ConsoleKeyInfo ReadKey();
+        string? ReadLine();
+        void Write(string? value);
+        void WriteError(string value);
+        void WriteErrorLine(string value);
+        void WriteLine(string? value = null);
     }
 }

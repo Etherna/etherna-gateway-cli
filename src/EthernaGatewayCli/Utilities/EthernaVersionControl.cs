@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.GatewayCli.Models.GitHubDto;
+using Etherna.GatewayCli.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -46,11 +47,14 @@ namespace Etherna.GatewayCli.Utilities
         }
 
         // Public methods.
-        public static async Task<bool> CheckNewVersionAsync()
+        public static async Task<bool> CheckNewVersionAsync(
+            IIoService ioService)
         {
+            ArgumentNullException.ThrowIfNull(ioService, nameof(ioService));
+            
             // Get current version.
-            Console.WriteLine($"Etherna Gateway CLI (v{CurrentVersion})");
-            Console.WriteLine();
+            ioService.WriteLine($"Etherna Gateway CLI (v{CurrentVersion})");
+            ioService.WriteLine();
 
             // Get last version form github releases.
             try
@@ -75,9 +79,12 @@ namespace Etherna.GatewayCli.Utilities
 
                 if (lastVersion.Version > CurrentVersion)
                 {
-                    Console.WriteLine($"A new release is available: {lastVersion.Version}");
-                    Console.WriteLine($"Upgrade now, or check out the release page at:");
-                    Console.WriteLine($" {lastVersion.Url}");
+                    ioService.WriteLine(
+                        $"""
+                         A new release is available: {lastVersion.Version}
+                         Upgrade now, or check out the release page at:
+                           {lastVersion.Url}
+                         """);
                     return true;
                 }
                 else
@@ -87,10 +94,11 @@ namespace Etherna.GatewayCli.Utilities
             catch (Exception ex)
 #pragma warning restore CA1031
             {
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("Unable to check last version on GitHub");
-                Console.WriteLine($"Error: {ex.Message}");
-                Console.ResetColor();
+                ioService.WriteErrorLine(
+                    $"""
+                     Unable to check last version on GitHub
+                     Error: {ex.Message}
+                     """);
                 return false;
             }
         }

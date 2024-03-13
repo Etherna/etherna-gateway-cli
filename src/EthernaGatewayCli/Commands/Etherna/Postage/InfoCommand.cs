@@ -34,8 +34,9 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         public InfoCommand(
             IAuthenticationService authService,
             IGatewayService gatewayService,
+            IIoService ioService,
             IServiceProvider serviceProvider)
-            : base(serviceProvider)
+            : base(ioService, serviceProvider)
         {
             this.authService = authService;
             this.gatewayService = gatewayService;
@@ -67,8 +68,8 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
             { }
 
             // Print result.
-            Console.WriteLine();
-            Console.WriteLine(postageBatch is null
+            IoService.WriteLine();
+            IoService.WriteLine(postageBatch is null
                 ? "Postage batch not found."
                 : JsonSerializer.Serialize(postageBatch, SerializerOptions));
         }

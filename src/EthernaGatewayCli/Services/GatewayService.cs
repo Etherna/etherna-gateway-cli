@@ -32,12 +32,15 @@ namespace Etherna.GatewayCli.Services
         
         // Fields.
         private readonly IEthernaUserGatewayClient ethernaGatewayClient;
-        
+        private readonly IIoService ioService;
+
         // Constructor.
         public GatewayService(
-            IEthernaUserGatewayClient ethernaGatewayClient)
+            IEthernaUserGatewayClient ethernaGatewayClient,
+            IIoService ioService)
         {
             this.ethernaGatewayClient = ethernaGatewayClient;
+            this.ioService = ioService;
         }
 
         // Methods.
@@ -67,11 +70,11 @@ namespace Etherna.GatewayCli.Services
             
             // Start creation.
             var bzzPrice = CalculateBzzPrice(amount, batchDepth);
-            Console.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
+            ioService.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
             var batchReferenceId = await ethernaGatewayClient.UsersClient.BatchesPostAsync(batchDepth, amount, label);
 
             // Wait until created batch is available.
-            Console.Write("Waiting for batch created... (it may take a while)");
+            ioService.Write("Waiting for batch created... (it may take a while)");
 
             var batchStartWait = DateTime.UtcNow;
             string? batchId = null;
@@ -96,7 +99,7 @@ namespace Etherna.GatewayCli.Services
                 }
             } while (string.IsNullOrWhiteSpace(batchId));
 
-            Console.WriteLine(". Done");
+            ioService.WriteLine(". Done");
 
             await WaitForBatchUsableAsync(batchId);
 
@@ -109,7 +112,7 @@ namespace Etherna.GatewayCli.Services
             var amount = await CalculateAmountAsync(ttlPostageStamp);
             var bzzPrice = CalculateBzzPrice(amount, batchDepth);
 
-            Console.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
+            ioService.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
 
             if (!autoPurchase)
             {
@@ -117,9 +120,9 @@ namespace Etherna.GatewayCli.Services
 
                 while (validSelection == false)
                 {
-                    Console.WriteLine($"Confirm the batch purchase? Y to confirm, N to deny [Y|n]");
+                    ioService.WriteLine($"Confirm the batch purchase? Y to confirm, N to deny [Y|n]");
 
-                    switch (Console.ReadKey())
+                    switch (ioService.ReadKey())
                     {
                         case { Key: ConsoleKey.Y }:
                         case { Key: ConsoleKey.Enter }:
@@ -128,7 +131,7 @@ namespace Etherna.GatewayCli.Services
                         case { Key: ConsoleKey.N }:
                             throw new InvalidOperationException("Batch purchase denied");
                         default:
-                            Console.WriteLine("Invalid selection");
+                            ioService.WriteLine("Invalid selection");
                             break;
                     }
                 }
@@ -137,7 +140,7 @@ namespace Etherna.GatewayCli.Services
             //create batch
             var batchId = await CreatePostageBatchAsync(amount, batchDepth, label);
 
-            Console.WriteLine($"Created postage batch: {batchId}");
+            ioService.WriteLine($"Created postage batch: {batchId}");
 
             return batchId;
         }
@@ -152,7 +155,7 @@ namespace Etherna.GatewayCli.Services
         private async Task WaitForBatchUsableAsync(string batchId)
         {
             // Wait until created batch is usable.
-            Console.Write("Waiting for batch being usable... (it may take a while)");
+            ioService.Write("Waiting for batch being usable... (it may take a while)");
 
             var batchStartWait = DateTime.UtcNow;
             bool batchIsUsable;
@@ -172,7 +175,7 @@ namespace Etherna.GatewayCli.Services
                 await Task.Delay(BatchCheckTimeSpan);
             } while (!batchIsUsable);
 
-            Console.WriteLine(". Done");
+            ioService.WriteLine(". Done");
         }
     }
 }

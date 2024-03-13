@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.GatewayCli.Models.Commands;
+using Etherna.GatewayCli.Services;
 using Etherna.GatewayCli.Utilities;
 using System;
 using System.Threading.Tasks;
@@ -23,8 +24,9 @@ namespace Etherna.GatewayCli.Commands
     {
         // Constructor.
         public EthernaCommand(
+            IIoService ioService,
             IServiceProvider serviceProvider)
-            : base(serviceProvider)
+            : base(ioService, serviceProvider)
         { }
         
         // Properties.
@@ -38,7 +40,7 @@ namespace Etherna.GatewayCli.Commands
             ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
             
             // Check for new versions.
-            var newVersionAvailable = await EthernaVersionControl.CheckNewVersionAsync();
+            var newVersionAvailable = await EthernaVersionControl.CheckNewVersionAsync(IoService);
             if (newVersionAvailable && !Options.IgnoreUpdate)
                 return;
             

@@ -13,6 +13,7 @@
 //   limitations under the License.
 
 using Etherna.GatewayCli.Models.Commands;
+using Etherna.GatewayCli.Services;
 using System;
 
 namespace Etherna.GatewayCli.Commands.Etherna
@@ -20,13 +21,13 @@ namespace Etherna.GatewayCli.Commands.Etherna
     public class ResourceCommand : CommandBase
     {
         // Constructor.
-        public ResourceCommand(IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public ResourceCommand(
+            IIoService ioService,
+            IServiceProvider serviceProvider)
+            : base(ioService, serviceProvider)
         { }
         
         // Properties.
         public override string Description => "Manage Swarm resources";
-
-        // Methods.
     }
 }

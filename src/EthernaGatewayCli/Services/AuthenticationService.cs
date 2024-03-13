@@ -25,14 +25,17 @@ namespace Etherna.GatewayCli.Services
         // Fields.
         private readonly IEthernaOpenIdConnectClient ethernaOpenIdConnectClient;
         private readonly IEthernaSignInService ethernaSignInService;
+        private readonly IIoService ioService;
 
         // Constructor.
         public AuthenticationService(
             IEthernaOpenIdConnectClient ethernaOpenIdConnectClient,
-            IEthernaSignInService ethernaSignInService)
+            IEthernaSignInService ethernaSignInService,
+            IIoService ioService)
         {
             this.ethernaOpenIdConnectClient = ethernaOpenIdConnectClient;
             this.ethernaSignInService = ethernaSignInService;
+            this.ioService = ioService;
         }
         
         // Methods.
@@ -44,21 +47,27 @@ namespace Etherna.GatewayCli.Services
             }
             catch (InvalidOperationException e)
             {
-                Console.WriteLine($"Error during authentication");
-                Console.WriteLine(e.Message);
+                ioService.WriteErrorLine(
+                    $"""
+                     Error during authentication.
+                     {e.Message}
+                     """);
                 throw;
             }
             catch (Win32Exception e)
             {
-                Console.WriteLine($"Error opening browser on local system. Try to authenticate with API key.");
-                Console.WriteLine(e.Message);
+                ioService.WriteErrorLine(
+                    $"""
+                     Error opening browser on local system. Try to authenticate with API key.
+                     {e.Message}
+                     """);
                 throw;
             }
 
             // Get info from authenticated user.
             var userName = await ethernaOpenIdConnectClient.GetUsernameAsync();
 
-            Console.WriteLine($"User {userName} authenticated");
+            ioService.WriteLine($"User {userName} authenticated");
         }
     }
 }

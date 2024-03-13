@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.GatewayCli.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Immutable;
@@ -30,8 +31,11 @@ namespace Etherna.GatewayCli.Models.Commands
         private ImmutableArray<Type>? _availableSubCommandTypes;
 
         // Constructor.
-        protected CommandBase(IServiceProvider serviceProvider)
+        protected CommandBase(
+            IIoService ioService,
+            IServiceProvider serviceProvider)
         {
+            IoService = ioService;
             this.serviceProvider = serviceProvider;
         }
 
@@ -73,6 +77,9 @@ namespace Etherna.GatewayCli.Models.Commands
         public virtual bool IsRootCommand => false;
         public string Name => GetCommandNameFromType(GetType());
         public virtual bool PrintHelpWithNoArgs => true;
+        
+        // Protected properties.
+        protected IIoService IoService { get; }
         
         // Public methods.
         public async Task RunAsync(string[] args)
@@ -200,7 +207,7 @@ namespace Etherna.GatewayCli.Models.Commands
         
             // Print it.
             var helpOutput = strBuilder.ToString();
-            Console.Write(helpOutput);
+            IoService.Write(helpOutput);
         }
     }
     
@@ -209,15 +216,16 @@ namespace Etherna.GatewayCli.Models.Commands
     {
         // Constructor.
         protected CommandBase(
+            IIoService ioService,
             IServiceProvider serviceProvider)
-            : base(serviceProvider)
+            : base(ioService, serviceProvider)
         { }
         
         // Properties.
         public TOptions Options { get; } = new TOptions();
         
         // Methods.
-        protected override int ParseOptionArgs(string[] args) => Options.ParseArgs(args);
+        protected override int ParseOptionArgs(string[] args) => Options.ParseArgs(args, IoService);
 
         protected override void AppendOptionsHelp(StringBuilder strBuilder)
         {

@@ -31,8 +31,9 @@ namespace Etherna.GatewayCli.Commands.Etherna
         public UploadCommand(
             IAuthenticationService authService,
             IEthernaUserGatewayClient ethernaGatewayClient,
+            IIoService ioService,
             IServiceProvider serviceProvider)
-            : base(serviceProvider)
+            : base(ioService, serviceProvider)
         {
             this.authService = authService;
             this.ethernaGatewayClient = ethernaGatewayClient;
@@ -75,19 +76,18 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 }
                 catch (EthernaGatewayApiException e) when (e.StatusCode == 404)
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkRed;
-                    Console.WriteLine($"Unable to find postage batch \"{Options.UseExistingPostageBatch}\".");
-                    Console.WriteLine($"Error: {e.Message}");
-                    Console.ResetColor();
+                    IoService.WriteErrorLine(
+                        $"""
+                         Unable to find postage batch "{Options.UseExistingPostageBatch}".
+                         Error: {e.Message}
+                         """);
                     throw;
                 }
                 
                 //verify if it is usable
                 if (!postageBatch.Usable)
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkRed;
-                    Console.WriteLine($"Postage batch \"{Options.UseExistingPostageBatch}\" is not usable.");
-                    Console.ResetColor();
+                    IoService.WriteErrorLine($"Postage batch \"{Options.UseExistingPostageBatch}\" is not usable.");
                     throw new InvalidOperationException($"Not usable postage batch: \"{Options.UseExistingPostageBatch}\"");
                 }
             }

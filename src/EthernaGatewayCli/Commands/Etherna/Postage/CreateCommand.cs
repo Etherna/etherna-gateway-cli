@@ -29,8 +29,9 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         public CreateCommand(
             IAuthenticationService authService,
             IGatewayService gatewayService,
+            IIoService ioService,
             IServiceProvider serviceProvider)
-            : base(serviceProvider)
+            : base(ioService, serviceProvider)
         {
             this.authService = authService;
             this.gatewayService = gatewayService;
@@ -59,8 +60,8 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
             var batchId = await gatewayService.CreatePostageBatchAsync(amount, Options.Depth, Options.Label);
             
             // Print result.
-            Console.WriteLine();
-            Console.WriteLine($"Postage batch id: {batchId}");
+            IoService.WriteLine();
+            IoService.WriteLine($"Postage batch id: {batchId}");
         }
     }
 }

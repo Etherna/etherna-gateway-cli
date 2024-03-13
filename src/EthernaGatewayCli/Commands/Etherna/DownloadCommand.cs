@@ -30,8 +30,9 @@ namespace Etherna.GatewayCli.Commands.Etherna
         public DownloadCommand(
             IAuthenticationService authService,
             IBeeGatewayClient beeGatewayClient,
+            IIoService ioService,
             IServiceProvider serviceProvider)
-            : base(serviceProvider)
+            : base(ioService, serviceProvider)
         {
             this.authService = authService;
             this.beeGatewayClient = beeGatewayClient;

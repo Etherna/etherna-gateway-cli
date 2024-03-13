@@ -14,6 +14,7 @@
 
 using Etherna.GatewayCli.Commands;
 using Etherna.GatewayCli.Models.Commands;
+using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Users.Native;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -54,7 +55,18 @@ namespace Etherna.GatewayCli
              * Because of this, we decided to run only option parsing upfront, and so instantiate the real command.
              */
             var ethernaCommandOptions = new EthernaCommandOptions();
-            ethernaCommandOptions.ParseArgs(args);
+            var tmpIoService = new ConsoleIoService();
+#pragma warning disable CA1031
+            try
+            {
+                ethernaCommandOptions.ParseArgs(args, tmpIoService);
+            }
+            catch (Exception e)
+            {
+                tmpIoService.WriteErrorLine(e.Message);
+                return;
+            }
+#pragma warning restore CA1031
             /* END WORKAROUND
              ****/
             
@@ -92,7 +104,18 @@ namespace Etherna.GatewayCli
             
             // Start etherna command.
             var ethernaCommand = serviceProvider.GetRequiredService<EthernaCommand>();
-            await ethernaCommand.RunAsync(args);
+            var ioService = serviceProvider.GetRequiredService<IIoService>();
+
+#pragma warning disable CA1031
+            try
+            {
+                await ethernaCommand.RunAsync(args);
+            }
+            catch (Exception e)
+            {
+                ioService.WriteErrorLine(e.Message);
+            }
+#pragma warning restore CA1031
         }
     }
 }

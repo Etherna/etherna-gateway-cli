@@ -29,6 +29,7 @@ namespace Etherna.GatewayCli
             // Add transient services.
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<IGatewayService, GatewayService>();
+            services.AddTransient<IIoService, ConsoleIoService>();
 
             // Add singleton services.
             //bee.net

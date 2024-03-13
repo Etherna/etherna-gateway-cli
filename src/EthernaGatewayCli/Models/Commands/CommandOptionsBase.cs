@@ -13,9 +13,11 @@
 //   limitations under the License.
 
 using Etherna.GatewayCli.Models.Commands.OptionRequirements;
+using Etherna.GatewayCli.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Etherna.GatewayCli.Models.Commands
 {
@@ -34,10 +36,13 @@ namespace Etherna.GatewayCli.Models.Commands
         /// </summary>
         /// <param name="args">Input args</param>
         /// <returns>Found option args counter</returns>
-        public virtual int ParseArgs(string[] args)
+        public virtual int ParseArgs(
+            string[] args,
+            IIoService ioService)
         {
             ArgumentNullException.ThrowIfNull(args, nameof(args));
-            
+            ArgumentNullException.ThrowIfNull(ioService, nameof(args));
+
             // Parse options.
             var parsedArgsCount = 0;
             var foundOptions = new List<ParsedOption>();
@@ -71,11 +76,12 @@ namespace Etherna.GatewayCli.Models.Commands
             var optionErrors = Requirements.SelectMany(r => r.ValidateOptions(this, foundOptions)).ToArray();
             if (optionErrors.Length != 0)
             {
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine($"Invalid options:");
+                var errorStrBuilder = new StringBuilder();
+                errorStrBuilder.AppendLine("Invalid options:");
                 foreach (var error in optionErrors)
-                    Console.WriteLine("  " + error.Message);
-                Console.ResetColor();
+                    errorStrBuilder.AppendLine("  " + error.Message);
+
+                ioService.WriteError(errorStrBuilder.ToString());
 
                 throw new ArgumentException("Errors with command options");
             }
