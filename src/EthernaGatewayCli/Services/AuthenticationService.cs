@@ -45,22 +45,14 @@ namespace Etherna.GatewayCli.Services
             {
                 await ethernaSignInService.SignInAsync();
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
-                ioService.WriteErrorLine(
-                    $"""
-                     Error during authentication.
-                     {e.Message}
-                     """);
+                ioService.WriteErrorLine("Error during authentication.");
                 throw;
             }
-            catch (Win32Exception e)
+            catch (Win32Exception)
             {
-                ioService.WriteErrorLine(
-                    $"""
-                     Error opening browser on local system. Try to authenticate with API key.
-                     {e.Message}
-                     """);
+                ioService.WriteErrorLine("Error opening browser on local system. Try to authenticate with API key.");
                 throw;
             }
 
