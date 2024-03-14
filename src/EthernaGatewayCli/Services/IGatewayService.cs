@@ -22,10 +22,13 @@ namespace Etherna.GatewayCli.Services
     public interface IGatewayService
     {
         Task<long> CalculateAmountAsync(TimeSpan ttl);
-        int CalculateDepth(long contentByteSize);
         BzzBalance CalculateBzzPrice(long amount, int depth);
+        int CalculateDepth(long contentByteSize);
+        long CalculatePostageBatchByteSize(PostageBatchDto postageBatch);
+        long CalculateRequiredPostageBatchSpace(long contentByteSize);
         Task<string> CreatePostageBatchAsync(long amount, int batchDepth, string? label);
         Task<long> GetCurrentChainPriceAsync();
         Task<PostageBatchDto> GetPostageBatchInfoAsync(string batchId);
+        Task<object> UploadFileAsync(string filePath, string postageBatchId, bool pinResource, bool offerDownload);
     }
 }

@@ -67,8 +67,31 @@ namespace Etherna.GatewayCli.Commands.Etherna
             await authService.SignInAsync();
             
             // Identify postage batch to use.
-            string postageBatchId;
-            if (Options.UseExistingPostageBatch is null)
+            var postageBatchId = await GetUsablePostageBatchIdAsync(contentByteSize);
+
+            // Upload file.
+            foreach (var filePath in filePaths)
+            {
+                IoService.WriteLine($"Uploading {filePath}...");
+#pragma warning disable CA1031
+                try
+                {
+                    var reference = await gatewayService.UploadFileAsync(filePath, postageBatchId, Options.PinResource, Options.OfferDownload);
+                    IoService.WriteLine($"Ref hash: {reference}");
+                }
+                catch (Exception e)
+                {
+                    IoService.WriteErrorLine($"Error uploading {filePath}");
+                    IoService.WriteLine(e.ToString());
+                }
+#pragma warning restore CA1031
+            }
+        }
+
+        // Helpers.
+        private async Task<string> GetUsablePostageBatchIdAsync(long contentByteSize)
+        {
+            if (Options.UsePostageBatchId is null)
             {
                 //create a new postage batch
                 var batchDepth = gatewayService.CalculateDepth(contentByteSize);
@@ -101,9 +124,11 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 }
 
                 //create batch
-                postageBatchId = await gatewayService.CreatePostageBatchAsync(amount, batchDepth, Options.NewPostageLabel);
+                var postageBatchId = await gatewayService.CreatePostageBatchAsync(amount, batchDepth, Options.NewPostageLabel);
 
                 IoService.WriteLine($"Created postage batch: {postageBatchId}");
+
+                return postageBatchId;
             }
             else
             {
@@ -111,29 +136,31 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 PostageBatchDto postageBatch;
                 try
                 {
-                    postageBatch = await gatewayService.GetPostageBatchInfoAsync(Options.UseExistingPostageBatch);
+                    postageBatch = await gatewayService.GetPostageBatchInfoAsync(Options.UsePostageBatchId);
                 }
                 catch (EthernaGatewayApiException e) when (e.StatusCode == 404)
                 {
-                    IoService.WriteErrorLine(
-                        $"""
-                         Unable to find postage batch "{Options.UseExistingPostageBatch}".
-                         Error: {e.Message}
-                         """);
+                    IoService.WriteErrorLine($"Unable to find postage batch \"{Options.UsePostageBatchId}\".");
                     throw;
                 }
                 
                 //verify if it is usable
                 if (!postageBatch.Usable)
                 {
-                    IoService.WriteErrorLine($"Postage batch \"{Options.UseExistingPostageBatch}\" is not usable.");
-                    throw new InvalidOperationException($"Not usable postage batch: \"{Options.UseExistingPostageBatch}\"");
+                    IoService.WriteErrorLine($"Postage batch \"{Options.UsePostageBatchId}\" is not usable.");
+                    throw new InvalidOperationException();
+                }
+                
+                //verify if it has available space
+                if (gatewayService.CalculatePostageBatchByteSize(postageBatch) -
+                    gatewayService.CalculateRequiredPostageBatchSpace(contentByteSize) < 0)
+                {
+                    IoService.WriteErrorLine($"Postage batch \"{Options.UsePostageBatchId}\" has not enough space.");
+                    throw new InvalidOperationException();
                 }
 
-                postageBatchId = postageBatch.Id;
+                return postageBatch.Id;
             }
-            
-            // Upload file.
         }
     }
 }

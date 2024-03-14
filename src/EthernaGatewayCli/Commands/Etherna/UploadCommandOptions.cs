@@ -27,15 +27,16 @@ namespace Etherna.GatewayCli.Commands.Etherna
         // Definitions.
         public override IEnumerable<CommandOption> Definitions => new CommandOption[]
         {
-            new(null, "--postage", "Use an existing postage batch. Create a new otherwise", args => UseExistingPostageBatch = args[0], [typeof(string)]),
-            new("-l", "--label", "Label of new postage stamp", args => NewPostageLabel = args[0], [typeof(string)]),
-            new("-t", "--ttl", $"TTL (days) of new postage stamp (default: {DefaultPostageBatchTtl.Days} days)", args => NewPostageTtl = TimeSpan.FromDays(int.Parse(args[0])), [typeof(int)]),
+            new(null, "--postage", "Use an existing postage batch. Create a new otherwise", args => UsePostageBatchId = args[0], [typeof(string)]),
+            new("-A", "--auto-purchase", "Auto purchase new postage batch", _ => NewPostageAutoPurchase = true),
+            new("-l", "--label", "Label of new postage batch", args => NewPostageLabel = args[0], [typeof(string)]),
+            new("-t", "--ttl", $"TTL (days) of new postage batch (default: {DefaultPostageBatchTtl.Days} days)", args => NewPostageTtl = TimeSpan.FromDays(int.Parse(args[0])), [typeof(int)]),
             new("-o", "--offer", "Offer resource downloads to everyone", _ => OfferDownload = true),
-            new(null, "--no-pin", "Don't pin resource (pinning by default)", _ => PinResource = false)
+            new(null, "--no-pin", "Don't pin resource (pinning enabled by default)", _ => PinResource = false)
         };
         public override IEnumerable<OptionRequirementBase> Requirements => new OptionRequirementBase[]
         {
-            new IfPresentThenOptionRequirement("--postage", new ForbiddenOptionRequirement("--label", "--ttl"))
+            new IfPresentThenOptionRequirement("--postage", new ForbiddenOptionRequirement("--auto-purchase", "--label", "--ttl"))
         };
 
         // Options.
@@ -44,6 +45,6 @@ namespace Etherna.GatewayCli.Commands.Etherna
         public string? NewPostageLabel { get; private set; }
         public TimeSpan NewPostageTtl { get; private set; } = DefaultPostageBatchTtl;
         public bool PinResource { get; private set; } = true;
-        public string? UseExistingPostageBatch { get; private set; }
+        public string? UsePostageBatchId { get; private set; }
     }
 }

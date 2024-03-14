@@ -50,16 +50,25 @@ namespace Etherna.GatewayCli.Services
             return (long)(ttl.TotalSeconds * currentPrice / CommonConsts.GnosisBlockTime.TotalSeconds);
         }
 
+        public BzzBalance CalculateBzzPrice(long amount, int depth) =>
+            amount * Math.Pow(2, depth) / BzzDecimalPlacesToUnit;
+
         public int CalculateDepth(long contentByteSize)
         {
             var batchDepth = 17;
-            while (Math.Pow(2, batchDepth) * ChunkByteSize < contentByteSize * 1.2) //keep 20% of tolerance
+            while (Math.Pow(2, batchDepth) * ChunkByteSize < CalculateRequiredPostageBatchSpace(contentByteSize))
                 batchDepth++;
             return batchDepth;
         }
 
-        public BzzBalance CalculateBzzPrice(long amount, int depth) =>
-            amount * Math.Pow(2, depth) / BzzDecimalPlacesToUnit;
+        public long CalculatePostageBatchByteSize(PostageBatchDto postageBatch)
+        {
+            ArgumentNullException.ThrowIfNull(postageBatch, nameof(postageBatch));
+            return (long)Math.Pow(2, postageBatch.Depth) * ChunkByteSize;
+        }
+
+        public long CalculateRequiredPostageBatchSpace(long contentByteSize) =>
+            (long)(contentByteSize * 1.2); //keep 20% of tolerance
 
         public async Task<string> CreatePostageBatchAsync(long amount, int batchDepth, string? label)
         {
@@ -111,7 +120,12 @@ namespace Etherna.GatewayCli.Services
 
         public Task<PostageBatchDto> GetPostageBatchInfoAsync(string batchId) =>
             ethernaGatewayClient.UsersClient.BatchesGetAsync(batchId);
-        
+
+        public Task<object> UploadFileAsync(string filePath, string postageBatchId, bool pinResource, bool offerDownload)
+        {
+            throw new NotImplementedException();
+        }
+
         // Helpers.
         private async Task WaitForBatchUsableAsync(string batchId)
         {
