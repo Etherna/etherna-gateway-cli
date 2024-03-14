@@ -63,7 +63,8 @@ namespace Etherna.GatewayCli
             }
             catch (Exception e)
             {
-                tmpIoService.WriteErrorLine(e.ToString());
+                tmpIoService.WriteLine();
+                tmpIoService.WriteLine(e.ToString());
                 return;
             }
 #pragma warning restore CA1031
@@ -113,7 +114,8 @@ namespace Etherna.GatewayCli
             }
             catch (Exception e)
             {
-                ioService.WriteErrorLine(e.ToString());
+                ioService.WriteLine();
+                ioService.WriteLine(e.ToString());
             }
 #pragma warning restore CA1031
         }
