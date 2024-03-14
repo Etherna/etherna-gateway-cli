@@ -18,24 +18,11 @@ using System.Linq;
 
 namespace Etherna.GatewayCli.Models.Commands.OptionRequirements
 {
-    public class RangeOptionRequirement : OptionRequirementBase
+    public class MinValueOptionRequirement(
+        string optionsName,
+        double minValue)
+        : OptionRequirementBase([optionsName])
     {
-        // Constructor.
-        public RangeOptionRequirement(string optionsName,
-            double minValue,
-            double maxValue) : base([optionsName])
-        {
-            if (minValue >= maxValue)
-                throw new ArgumentException("Min value must be smaller than max value");
-            
-            MaxValue = maxValue;
-            MinValue = minValue;
-        }
-
-        // Properties.
-        public double MaxValue { get; }
-        public double MinValue { get; }
-
         // Methods.
         public override string PrintHelpLine(CommandOptionsBase commandOptions)
         {
@@ -57,12 +44,12 @@ namespace Etherna.GatewayCli.Models.Commands.OptionRequirements
                 return [new OptionRequirementError(
                     $"Invalid argument value: {parsedOption.ParsedName} {parsedOption.ParsedArgs.First()}")];
 
-            return doubleArg >= MinValue && doubleArg <= MaxValue
+            return doubleArg >= minValue
                 ? Array.Empty<OptionRequirementError>()
                 : [new OptionRequirementError(ComposeSentence(parsedOption.ParsedName))];
         }
 
         // Private helpers.
-        private string ComposeSentence(string optName) => $"{optName} has value in range [{MinValue}, {MaxValue}].";
+        private string ComposeSentence(string optName) => $"{optName} has min value {minValue}.";
     }
 }

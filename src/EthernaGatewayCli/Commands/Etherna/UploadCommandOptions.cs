@@ -22,25 +22,28 @@ namespace Etherna.GatewayCli.Commands.Etherna
     public class UploadCommandOptions : CommandOptionsBase
     {
         // Consts.
-        public const int DefaultTtlDays = 365;
+        private static readonly TimeSpan DefaultPostageBatchTtl = TimeSpan.FromDays(365);
 
         // Definitions.
         public override IEnumerable<CommandOption> Definitions => new CommandOption[]
         {
-            new(null, "--postage", "Use an existing postage batch. Create a new otherwise", args => UseExistingPostageBatch = args[0], new[] { typeof(string) }),
-            new("-t", "--ttl", $"TTL (days) Postage Stamp (default: {DefaultTtlDays} days)", args => TtlDays = int.Parse(args[0]), new[] { typeof(int) }),
+            new(null, "--postage", "Use an existing postage batch. Create a new otherwise", args => UseExistingPostageBatch = args[0], [typeof(string)]),
+            new("-l", "--label", "Label of new postage stamp", args => NewPostageLabel = args[0], [typeof(string)]),
+            new("-t", "--ttl", $"TTL (days) of new postage stamp (default: {DefaultPostageBatchTtl.Days} days)", args => NewPostageTtl = TimeSpan.FromDays(int.Parse(args[0])), [typeof(int)]),
             new("-o", "--offer", "Offer resource downloads to everyone", _ => OfferDownload = true),
             new(null, "--no-pin", "Don't pin resource (pinning by default)", _ => PinResource = false)
         };
-        public override IEnumerable<OptionRequirementBase> Requirements => new[]
+        public override IEnumerable<OptionRequirementBase> Requirements => new OptionRequirementBase[]
         {
-            new ExclusiveOptionRequirement("--postage", "--ttl")
+            new IfPresentThenOptionRequirement("--postage", new ForbiddenOptionRequirement("--label", "--ttl"))
         };
 
         // Options.
         public bool OfferDownload { get; private set; }
+        public bool NewPostageAutoPurchase { get; private set; }
+        public string? NewPostageLabel { get; private set; }
+        public TimeSpan NewPostageTtl { get; private set; } = DefaultPostageBatchTtl;
         public bool PinResource { get; private set; } = true;
-        public int TtlDays { get; private set; } = DefaultTtlDays;
         public string? UseExistingPostageBatch { get; private set; }
     }
 }

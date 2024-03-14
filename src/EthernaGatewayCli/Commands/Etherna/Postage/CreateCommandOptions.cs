@@ -32,10 +32,10 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         public override IEnumerable<OptionRequirementBase> Requirements => new OptionRequirementBase[]
         {
             new ExclusiveOptionRequirement("--amount", "--ttl"),
-            new RequiredOptionRequirement("--amount", "--ttl"),
-            new RequiredOptionRequirement("--depth"),
-            new MinOptionRequirement("--depth", 17),
-            new MinOptionRequirement("--ttl", 1)
+            new RequireOneOfOptionRequirement("--amount", "--ttl"),
+            new RequireOneOfOptionRequirement("--depth"),
+            new MinValueOptionRequirement("--depth", 17),
+            new MinValueOptionRequirement("--ttl", 1)
         };
 
         // Options.

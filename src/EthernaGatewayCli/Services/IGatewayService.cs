@@ -25,7 +25,6 @@ namespace Etherna.GatewayCli.Services
         int CalculateDepth(long contentByteSize);
         BzzBalance CalculateBzzPrice(long amount, int depth);
         Task<string> CreatePostageBatchAsync(long amount, int batchDepth, string? label);
-        Task<string> CreatePostageBatchFromContentAsync(long contentByteSize, TimeSpan ttlPostageStamp, string? label, bool autoPurchase);
         Task<long> GetCurrentChainPriceAsync();
         Task<PostageBatchDto> GetPostageBatchInfoAsync(string batchId);
     }

@@ -18,12 +18,12 @@ using System.Linq;
 
 namespace Etherna.GatewayCli.Models.Commands.OptionRequirements
 {
-    public class RequiredOptionRequirement(params string[] optionsNames)
+    public class RequireOneOfOptionRequirement(params string[] optionsNames)
         : OptionRequirementBase(optionsNames)
     {
         public override string PrintHelpLine(CommandOptionsBase commandOptions) =>
             string.Join(", ", OptionsNames.Select(n => commandOptions.FindOptionByName(n).LongName)) +
-            (OptionsNames.Count == 1 ? ": is required" : ": at least one is required.");
+            (OptionsNames.Count == 1 ? " is required." : " at least one is required.");
 
         public override IEnumerable<OptionRequirementError> ValidateOptions(
             CommandOptionsBase commandOptions,

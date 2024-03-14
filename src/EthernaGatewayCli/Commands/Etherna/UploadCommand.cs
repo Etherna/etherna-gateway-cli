@@ -15,7 +15,6 @@
 using Etherna.GatewayCli.Models.Commands;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.GeneratedClients.Gateway;
-using Etherna.Sdk.Users;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -25,18 +24,18 @@ namespace Etherna.GatewayCli.Commands.Etherna
     public class UploadCommand : CommandBase<UploadCommandOptions>
     {
         private readonly IAuthenticationService authService;
-        private readonly IEthernaUserGatewayClient ethernaGatewayClient;
+        private readonly IGatewayService gatewayService;
 
         // Constructor.
         public UploadCommand(
             IAuthenticationService authService,
-            IEthernaUserGatewayClient ethernaGatewayClient,
+            IGatewayService gatewayService,
             IIoService ioService,
             IServiceProvider serviceProvider)
             : base(ioService, serviceProvider)
         {
             this.authService = authService;
-            this.ethernaGatewayClient = ethernaGatewayClient;
+            this.gatewayService = gatewayService;
         }
         
         // Properties.
@@ -53,26 +52,66 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 throw new ArgumentException("Upload requires 1 or more arguments");
             var filePaths = commandArgs;
             
-            // Search files.
+            // Search files and calculate total file size.
+            var contentByteSize = 0L;
             foreach (var filePath in filePaths)
+            {
                 if (!File.Exists(filePath))
                     throw new InvalidOperationException($"File {filePath} doesn't exist");
-            
+ 
+                var fileInfo = new FileInfo(filePath);
+                contentByteSize += fileInfo.Length;
+            }
+
             // Authenticate user.
             await authService.SignInAsync();
             
             // Identify postage batch to use.
-            PostageBatchDto postageBatch;
+            string postageBatchId;
             if (Options.UseExistingPostageBatch is null)
             {
                 //create a new postage batch
+                var batchDepth = gatewayService.CalculateDepth(contentByteSize);
+                var amount = await gatewayService.CalculateAmountAsync(Options.NewPostageTtl);
+                var bzzPrice = gatewayService.CalculateBzzPrice(amount, batchDepth);
+
+                IoService.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
+
+                if (!Options.NewPostageAutoPurchase)
+                {
+                    bool validSelection = false;
+
+                    while (validSelection == false)
+                    {
+                        IoService.WriteLine($"Confirm the batch purchase? Y to confirm, N to deny [Y|n]");
+
+                        switch (IoService.ReadKey())
+                        {
+                            case { Key: ConsoleKey.Y }:
+                            case { Key: ConsoleKey.Enter }:
+                                validSelection = true;
+                                break;
+                            case { Key: ConsoleKey.N }:
+                                throw new InvalidOperationException("Batch purchase denied");
+                            default:
+                                IoService.WriteLine("Invalid selection");
+                                break;
+                        }
+                    }
+                }
+
+                //create batch
+                postageBatchId = await gatewayService.CreatePostageBatchAsync(amount, batchDepth, Options.NewPostageLabel);
+
+                IoService.WriteLine($"Created postage batch: {postageBatchId}");
             }
             else
             {
                 //get info about existing postage batch
+                PostageBatchDto postageBatch;
                 try
                 {
-                    postageBatch = await ethernaGatewayClient.UsersClient.BatchesGetAsync(Options.UseExistingPostageBatch);
+                    postageBatch = await gatewayService.GetPostageBatchInfoAsync(Options.UseExistingPostageBatch);
                 }
                 catch (EthernaGatewayApiException e) when (e.StatusCode == 404)
                 {
@@ -90,6 +129,8 @@ namespace Etherna.GatewayCli.Commands.Etherna
                     IoService.WriteErrorLine($"Postage batch \"{Options.UseExistingPostageBatch}\" is not usable.");
                     throw new InvalidOperationException($"Not usable postage batch: \"{Options.UseExistingPostageBatch}\"");
                 }
+
+                postageBatchId = postageBatch.Id;
             }
             
             // Upload file.

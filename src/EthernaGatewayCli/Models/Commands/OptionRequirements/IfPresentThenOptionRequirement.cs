@@ -18,39 +18,37 @@ using System.Linq;
 
 namespace Etherna.GatewayCli.Models.Commands.OptionRequirements
 {
-    public class MinOptionRequirement(
+    public class IfPresentThenOptionRequirement(
         string optionsName,
-        double minValue)
+        OptionRequirementBase thenRequirement)
         : OptionRequirementBase([optionsName])
     {
-        // Properties.
-        public double MinValue { get; } = minValue;
-
         // Methods.
         public override string PrintHelpLine(CommandOptionsBase commandOptions)
         {
             ArgumentNullException.ThrowIfNull(commandOptions, nameof(commandOptions));
             
-            return commandOptions.FindOptionByName(OptionsNames.First()).LongName +
-                   ": min value " + MinValue;
+            return ComposeSentence(
+                commandOptions.FindOptionByName(OptionsNames.First()).LongName,
+                thenRequirement.PrintHelpLine(commandOptions),
+                commandOptions);
         }
 
-        public override IEnumerable<OptionRequirementError> ValidateOptions(
-            CommandOptionsBase commandOptions,
-            IEnumerable<ParsedOption> parsedOptions)
+        public override IEnumerable<OptionRequirementError> ValidateOptions(CommandOptionsBase commandOptions, IEnumerable<ParsedOption> parsedOptions)
         {
             var optName = OptionsNames.First();
             
             if (!TryFindParsedOption(parsedOptions, optName, out var parsedOption))
                 return Array.Empty<OptionRequirementError>();
 
-            if (!double.TryParse(parsedOption!.ParsedArgs.First(), out var doubleArg))
-                return [new OptionRequirementError(
-                    $"Invalid argument value: {parsedOption.ParsedName} {parsedOption.ParsedArgs.First()}")];
+            var thenErrors = thenRequirement.ValidateOptions(commandOptions, parsedOptions);
 
-            return doubleArg >= MinValue
-                ? Array.Empty<OptionRequirementError>()
-                : [new OptionRequirementError(parsedOption.ParsedName + ": min value " + MinValue)];
+            return thenErrors.Select(thenError =>
+                new OptionRequirementError(ComposeSentence(optName, thenError.Message, commandOptions)));
         }
+        
+        // Private helpers.
+        private string ComposeSentence(string optName, string thenMessageLine, CommandOptionsBase commandOptions) =>
+            $"If {optName} is present then {thenMessageLine}";
     }
 }

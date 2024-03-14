@@ -106,45 +106,6 @@ namespace Etherna.GatewayCli.Services
             return batchId;
         }
         
-        public async Task<string> CreatePostageBatchFromContentAsync(long contentByteSize, TimeSpan ttlPostageStamp, string? label, bool autoPurchase)
-        {
-            var batchDepth = CalculateDepth(contentByteSize);
-            var amount = await CalculateAmountAsync(ttlPostageStamp);
-            var bzzPrice = CalculateBzzPrice(amount, batchDepth);
-
-            ioService.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
-
-            if (!autoPurchase)
-            {
-                bool validSelection = false;
-
-                while (validSelection == false)
-                {
-                    ioService.WriteLine($"Confirm the batch purchase? Y to confirm, N to deny [Y|n]");
-
-                    switch (ioService.ReadKey())
-                    {
-                        case { Key: ConsoleKey.Y }:
-                        case { Key: ConsoleKey.Enter }:
-                            validSelection = true;
-                            break;
-                        case { Key: ConsoleKey.N }:
-                            throw new InvalidOperationException("Batch purchase denied");
-                        default:
-                            ioService.WriteLine("Invalid selection");
-                            break;
-                    }
-                }
-            }
-
-            //create batch
-            var batchId = await CreatePostageBatchAsync(amount, batchDepth, label);
-
-            ioService.WriteLine($"Created postage batch: {batchId}");
-
-            return batchId;
-        }
-        
         public async Task<long> GetCurrentChainPriceAsync() =>
             (await ethernaGatewayClient.SystemClient.ChainstateAsync()).CurrentPrice;
 

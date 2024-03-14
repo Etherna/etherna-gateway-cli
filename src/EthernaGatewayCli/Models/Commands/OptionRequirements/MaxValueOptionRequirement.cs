@@ -18,21 +18,17 @@ using System.Linq;
 
 namespace Etherna.GatewayCli.Models.Commands.OptionRequirements
 {
-    public class MaxOptionRequirement(
+    public class MaxValueOptionRequirement(
         string optionsName,
         double maxValue)
         : OptionRequirementBase([optionsName])
     {
-        // Properties.
-        public double MaxValue { get; } = maxValue;
-
         // Methods.
         public override string PrintHelpLine(CommandOptionsBase commandOptions)
         {
             ArgumentNullException.ThrowIfNull(commandOptions, nameof(commandOptions));
-            
-            return commandOptions.FindOptionByName(OptionsNames.First()).LongName +
-                   ": max value " + MaxValue;
+
+            return ComposeSentence(commandOptions.FindOptionByName(OptionsNames.First()).LongName);
         }
 
         public override IEnumerable<OptionRequirementError> ValidateOptions(
@@ -40,7 +36,7 @@ namespace Etherna.GatewayCli.Models.Commands.OptionRequirements
             IEnumerable<ParsedOption> parsedOptions)
         {
             var optName = OptionsNames.First();
-            
+
             if (!TryFindParsedOption(parsedOptions, optName, out var parsedOption))
                 return Array.Empty<OptionRequirementError>();
 
@@ -48,9 +44,12 @@ namespace Etherna.GatewayCli.Models.Commands.OptionRequirements
                 return [new OptionRequirementError(
                     $"Invalid argument value: {parsedOption.ParsedName} {parsedOption.ParsedArgs.First()}")];
 
-            return doubleArg <= MaxValue
+            return doubleArg <= maxValue
                 ? Array.Empty<OptionRequirementError>()
-                : [new OptionRequirementError(parsedOption.ParsedName + ": max value " + MaxValue)];
+                : [new OptionRequirementError(ComposeSentence(parsedOption.ParsedName))];
         }
+
+        // Private helpers.
+        private string ComposeSentence(string optName) => $"{optName} has max value {maxValue}.";
     }
 }
