@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.BeeNet.InputModels;
 using Etherna.GatewayCli.Models.Commands;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.GeneratedClients.Gateway;
@@ -23,18 +24,26 @@ namespace Etherna.GatewayCli.Commands.Etherna
 {
     public class UploadCommand : CommandBase<UploadCommandOptions>
     {
+        // Consts.
+        private const int UploadMaxRetry = 10;
+        private readonly TimeSpan UploadRetryTimeSpan = TimeSpan.FromSeconds(5);
+        
+        // Fields.
         private readonly IAuthenticationService authService;
+        private readonly IFileService fileService;
         private readonly IGatewayService gatewayService;
 
         // Constructor.
         public UploadCommand(
             IAuthenticationService authService,
+            IFileService fileService,
             IGatewayService gatewayService,
             IIoService ioService,
             IServiceProvider serviceProvider)
             : base(ioService, serviceProvider)
         {
             this.authService = authService;
+            this.fileService = fileService;
             this.gatewayService = gatewayService;
         }
         
@@ -73,18 +82,43 @@ namespace Etherna.GatewayCli.Commands.Etherna
             foreach (var filePath in filePaths)
             {
                 IoService.WriteLine($"Uploading {filePath}...");
+                
+                var uploadSucceeded = false;
+                string refHash = default!;
+                for (int i = 0; i < UploadMaxRetry && !uploadSucceeded; i++)
+                {
+                    try
+                    {
+                        var mimeType = fileService.GetMimeType(filePath);
+                        var fileParameterInput = new FileParameterInput(
+                            File.Open(filePath, FileMode.Open),
+                            Path.GetFileName(filePath),
+                            mimeType);
+                        
+                        refHash = await gatewayService.UploadFileAsync(postageBatchId, fileParameterInput, Options.PinResource);
+                        IoService.WriteLine($"Ref hash: {refHash}");
+                        
+                        uploadSucceeded = true;
+                    }
 #pragma warning disable CA1031
-                try
-                {
-                    var reference = await gatewayService.UploadFileAsync(filePath, postageBatchId, Options.PinResource, Options.OfferDownload);
-                    IoService.WriteLine($"Ref hash: {reference}");
-                }
-                catch (Exception e)
-                {
-                    IoService.WriteErrorLine($"Error uploading {filePath}");
-                    IoService.WriteLine(e.ToString());
-                }
+                    catch (Exception e)
+                    {
+                        IoService.WriteErrorLine($"Error uploading {filePath}");
+                        IoService.WriteLine(e.ToString());
+                        
+                        if (i + 1 < UploadMaxRetry)
+                        {
+                            Console.WriteLine("Retry...");
+                            await Task.Delay(UploadRetryTimeSpan);
+                        }
+                    }
 #pragma warning restore CA1031
+                }
+
+                if (!uploadSucceeded)
+                    IoService.WriteErrorLine($"Can't upload \"{filePath}\" after {UploadMaxRetry} retries");
+                else if (Options.OfferDownload)
+                    await gatewayService.OfferResourceAsync(refHash);
             }
         }
 

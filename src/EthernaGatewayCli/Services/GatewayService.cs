@@ -12,6 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.BeeNet.Clients.GatewayApi;
+using Etherna.BeeNet.InputModels;
 using Etherna.GatewayCli.Models.Domain;
 using Etherna.Sdk.GeneratedClients.Gateway;
 using Etherna.Sdk.Users;
@@ -31,14 +33,17 @@ namespace Etherna.GatewayCli.Services
         private const int MinBatchDepth = 17;
         
         // Fields.
+        private readonly IBeeGatewayClient beeGatewayClient;
         private readonly IEthernaUserGatewayClient ethernaGatewayClient;
         private readonly IIoService ioService;
 
         // Constructor.
         public GatewayService(
+            IBeeGatewayClient beeGatewayClient,
             IEthernaUserGatewayClient ethernaGatewayClient,
             IIoService ioService)
         {
+            this.beeGatewayClient = beeGatewayClient;
             this.ethernaGatewayClient = ethernaGatewayClient;
             this.ioService = ioService;
         }
@@ -121,10 +126,15 @@ namespace Etherna.GatewayCli.Services
         public Task<PostageBatchDto> GetPostageBatchInfoAsync(string batchId) =>
             ethernaGatewayClient.UsersClient.BatchesGetAsync(batchId);
 
-        public Task<object> UploadFileAsync(string filePath, string postageBatchId, bool pinResource, bool offerDownload)
-        {
-            throw new NotImplementedException();
-        }
+        public Task OfferResourceAsync(string hash) =>
+            ethernaGatewayClient.ResourcesClient.OffersPostAsync(hash);
+
+        public Task<string> UploadFileAsync(string postageBatchId, FileParameterInput file, bool pinResource) =>
+            beeGatewayClient.UploadFileAsync(
+                postageBatchId,
+                [file],
+                swarmDeferredUpload: true,
+                swarmPin: pinResource);
 
         // Helpers.
         private async Task WaitForBatchUsableAsync(string batchId)
