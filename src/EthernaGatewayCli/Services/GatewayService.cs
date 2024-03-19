@@ -13,11 +13,11 @@
 //   limitations under the License.
 
 using Etherna.BeeNet.Clients.GatewayApi;
-using Etherna.BeeNet.InputModels;
 using Etherna.GatewayCli.Models.Domain;
 using Etherna.Sdk.GeneratedClients.Gateway;
 using Etherna.Sdk.Users;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Services
@@ -129,10 +129,17 @@ namespace Etherna.GatewayCli.Services
         public Task OfferResourceAsync(string hash) =>
             ethernaGatewayClient.ResourcesClient.OffersPostAsync(hash);
 
-        public Task<string> UploadFileAsync(string postageBatchId, FileParameterInput file, bool pinResource) =>
+        public Task<string> UploadFileAsync(
+            string postageBatchId,
+            Stream content,
+            string? name,
+            string? contentType,
+            bool pinResource) =>
             beeGatewayClient.UploadFileAsync(
                 postageBatchId,
-                [file],
+                content,
+                name: name,
+                contentType: contentType,
                 swarmDeferredUpload: true,
                 swarmPin: pinResource);
 

@@ -12,10 +12,10 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.BeeNet.InputModels;
 using Etherna.GatewayCli.Models.Domain;
 using Etherna.Sdk.GeneratedClients.Gateway;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Services
@@ -31,6 +31,11 @@ namespace Etherna.GatewayCli.Services
         Task<long> GetCurrentChainPriceAsync();
         Task<PostageBatchDto> GetPostageBatchInfoAsync(string batchId);
         Task OfferResourceAsync(string hash);
-        Task<string> UploadFileAsync(string postageBatchId, FileParameterInput file, bool pinResource);
+        Task<string> UploadFileAsync(
+            string postageBatchId,
+            Stream content,
+            string? name,
+            string? contentType,
+            bool pinResource);
     }
 }

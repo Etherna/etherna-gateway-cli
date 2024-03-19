@@ -89,13 +89,15 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 {
                     try
                     {
+                        await using var fileStream = File.Open(filePath, FileMode.Open);
                         var mimeType = fileService.GetMimeType(filePath);
-                        var fileParameterInput = new FileParameterInput(
-                            File.Open(filePath, FileMode.Open),
-                            Path.GetFileName(filePath),
-                            mimeType);
                         
-                        refHash = await gatewayService.UploadFileAsync(postageBatchId, fileParameterInput, Options.PinResource);
+                        refHash = await gatewayService.UploadFileAsync(
+                            postageBatchId,
+                            fileStream,
+                            Path.GetFileName(filePath),
+                            mimeType,
+                            Options.PinResource);
                         IoService.WriteLine($"Ref hash: {refHash}");
                         
                         uploadSucceeded = true;
