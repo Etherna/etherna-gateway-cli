@@ -39,8 +39,7 @@ namespace Etherna.GatewayCli
                 var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
                 return new BeeGatewayClient(
                     httpClientFactory.CreateClient(CommonConsts.HttpClientName),
-                    new Uri(CommonConsts.EthernaGatewayUrl),
-                    CommonConsts.BeeNodeGatewayVersion);
+                    new Uri(CommonConsts.EthernaGatewayUrl));
             });
             services.AddSingleton<IBeeNodeClient, BeeNodeClient>();
         }
