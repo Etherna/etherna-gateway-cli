@@ -39,7 +39,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
         }
         
         // Properties.
-        public override string CommandUsageHelpString => "[OPTIONS] RESOURCE";
+        public override string CommandArgsHelpString => "RESOURCE";
         public override string Description => "Download a resource from Swarm";
 
         // Protected methods.

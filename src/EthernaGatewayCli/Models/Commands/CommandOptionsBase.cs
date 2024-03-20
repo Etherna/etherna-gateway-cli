@@ -24,6 +24,7 @@ namespace Etherna.GatewayCli.Models.Commands
     public abstract class CommandOptionsBase
     {
         // Properties.
+        public bool AreRequired => Requirements.OfType<RequireOneOfOptionRequirement>().Any();
         public abstract IEnumerable<CommandOption> Definitions { get; }
         public virtual IEnumerable<OptionRequirementBase> Requirements => Array.Empty<OptionRequirementBase>();
         

@@ -15,6 +15,7 @@
 using Etherna.GatewayCli.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -29,6 +30,7 @@ namespace Etherna.GatewayCli.Models.Commands
         // Fields.
         private readonly IServiceProvider serviceProvider;
         private ImmutableArray<Type>? _availableSubCommandTypes;
+        private ImmutableArray<Type>? _commandPathTypes;
 
         // Constructor.
         protected CommandBase(
@@ -57,23 +59,51 @@ namespace Etherna.GatewayCli.Models.Commands
                 return _availableSubCommandTypes.Value;
             }
         }
-        public string CommandNamesPath
+        public string CommandPathNames => string.Join(' ',
+            CommandPathTypes.Select(cType => ((CommandBase)serviceProvider.GetRequiredService(cType)).Name));
+        public ImmutableArray<Type> CommandPathTypes
         {
             get
             {
-                var currentCommandNamespace = GetType().Namespace;
-                if (currentCommandNamespace is null)
-                    throw new InvalidOperationException();
-                
-                var parentCommandNames = currentCommandNamespace.Split('.')
-                    .Select(n => n.ToLower())
-                    .Reverse().TakeWhile(n => n != "commands").Reverse();
+                if (_commandPathTypes is null)
+                {
+                    var currentCommandNamespace = GetType().Namespace;
+                    if (currentCommandNamespace is null)
+                        throw new InvalidOperationException();
 
-                return string.Join(' ', parentCommandNames.Append(Name));
+                    _commandPathTypes = GetParentCommandTypesFromNamespace(currentCommandNamespace)
+                        .Append(GetType()).ToImmutableArray();
+                }
+                return _commandPathTypes.Value;
             }
         }
-        public virtual string CommandUsageHelpString => "COMMAND";
+        public virtual string CommandArgsHelpString => HasSubCommands ? "COMMAND" : "";
+        public string CommandPathUsageHelpString
+        {
+            get
+            {
+                var strBuilder = new StringBuilder();
+                foreach (var commandType in CommandPathTypes)
+                {
+                    var command = (CommandBase)serviceProvider.GetRequiredService(commandType);
+                    strBuilder.Append(command.Name);
+                    if (command.HasOptions)
+                    {
+                        strBuilder.Append(command.HasRequiredOptions ?
+                            $" {command.Name.ToUpperInvariant()}_OPTIONS" :    
+                            $" [{command.Name.ToUpperInvariant()}_OPTIONS]");
+                    }
+
+                    strBuilder.Append(' ');
+                }
+                strBuilder.Append(CommandArgsHelpString);
+                return strBuilder.ToString();
+            }
+        }
         public abstract string Description { get; }
+        public virtual bool HasOptions => false;
+        public virtual bool HasRequiredOptions => false;
+        public bool HasSubCommands => AvailableSubCommandTypes.Any();
         public virtual bool IsRootCommand => false;
         public string Name => GetCommandNameFromType(GetType());
         public virtual bool PrintHelpWithNoArgs => true;
@@ -125,7 +155,7 @@ namespace Etherna.GatewayCli.Models.Commands
                 t => GetCommandNameFromType(t) == subCommandName);
             
             if (selectedCommandType is null)
-                throw new ArgumentException($"{CommandNamesPath}: '{subCommandName}' is not a valid command.");
+                throw new ArgumentException($"{CommandPathNames}: '{subCommandName}' is not a valid command.");
 
             var selectedCommand = (CommandBase)serviceProvider.GetRequiredService(selectedCommandType);
             await selectedCommand.RunAsync(subCommandArgs);
@@ -163,18 +193,33 @@ namespace Etherna.GatewayCli.Models.Commands
             return false;
         }
 
+        private static IEnumerable<Type> GetParentCommandTypesFromNamespace(string currentNamespace)
+        {
+            var lastSeparatorIndex = currentNamespace.LastIndexOf('.');
+            var parentNamespace = currentNamespace[..lastSeparatorIndex];
+            var parentCommandName = currentNamespace[(lastSeparatorIndex + 1)..] + "Command";
+            var parentCommandType = typeof(CommandBase).GetTypeInfo().Assembly.GetTypes()
+                .FirstOrDefault(t => t is { IsClass: true, IsAbstract: false } &&
+                                     t.FullName == parentNamespace + '.' + parentCommandName &&
+                                     typeof(CommandBase).IsAssignableFrom(t));
+            
+            if (parentCommandType is null)
+                return Array.Empty<Type>();
+            return GetParentCommandTypesFromNamespace(parentNamespace).Append(parentCommandType);
+        }
+
         [SuppressMessage("Performance", "CA1851:Possible multiple enumerations of \'IEnumerable\' collection")]
         private void PrintHelp()
         {
             var strBuilder = new StringBuilder();
             
             // Add name and description.
-            strBuilder.AppendLine(CommandNamesPath);
+            strBuilder.AppendLine(CommandPathNames);
             strBuilder.AppendLine(Description);
             strBuilder.AppendLine();
 
             // Add usage.
-            strBuilder.AppendLine($"Usage:  {CommandNamesPath} {CommandUsageHelpString}");
+            strBuilder.AppendLine($"Usage:  {CommandPathUsageHelpString}");
             strBuilder.AppendLine();
         
             // Add sub commands.
@@ -200,9 +245,9 @@ namespace Etherna.GatewayCli.Models.Commands
             AppendOptionsHelp(strBuilder);
         
             // Add print help.
-            strBuilder.AppendLine($"Run '{CommandNamesPath} -h' or '{CommandNamesPath} --help' to print help.");
+            strBuilder.AppendLine($"Run '{CommandPathNames} -h' or '{CommandPathNames} --help' to print help.");
             if (IsRootCommand)
-                strBuilder.AppendLine($"Run '{CommandNamesPath} COMMAND -h' or '{CommandNamesPath} COMMAND --help' for more information on a command.");
+                strBuilder.AppendLine($"Run '{CommandPathNames} COMMAND -h' or '{CommandPathNames} COMMAND --help' for more information on a command.");
             strBuilder.AppendLine();
         
             // Print it.
@@ -222,6 +267,8 @@ namespace Etherna.GatewayCli.Models.Commands
         { }
         
         // Properties.
+        public override bool HasOptions => true;
+        public override bool HasRequiredOptions => Options.AreRequired;
         public TOptions Options { get; } = new TOptions();
         
         // Methods.

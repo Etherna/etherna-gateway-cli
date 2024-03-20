@@ -38,7 +38,6 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         }
 
         // Properties.
-        public override string CommandUsageHelpString => "OPTIONS";
         public override string Description => "Create a new postage batch";
         
         // Methods.

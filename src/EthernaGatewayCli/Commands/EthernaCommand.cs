@@ -30,7 +30,6 @@ namespace Etherna.GatewayCli.Commands
         { }
         
         // Properties.
-        public override string CommandUsageHelpString => "[OPTIONS] COMMAND";
         public override string Description => "A CLI interface to the Etherna Gateway";
         public override bool IsRootCommand => true;
         

@@ -48,7 +48,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
         }
         
         // Properties.
-        public override string CommandUsageHelpString => "[OPTIONS] SOURCE_FILE [SOURCE_FILE ...]";
+        public override string CommandArgsHelpString => "SOURCE_FILE [SOURCE_FILE ...]";
         public override string Description => "Upload a file resource to Swarm";
 
         // Methods.

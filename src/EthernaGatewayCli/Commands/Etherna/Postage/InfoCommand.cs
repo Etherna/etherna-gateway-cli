@@ -44,7 +44,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
 
         // Properties.
         public override string Description => "Get info about a postage batch";
-        public override string CommandUsageHelpString => "POSTAGE_ID";
+        public override string CommandArgsHelpString => "POSTAGE_ID";
         
         // Methods.
         protected override async Task ExecuteAsync(string[] commandArgs)
