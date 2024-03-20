@@ -59,7 +59,8 @@ namespace Etherna.GatewayCli
 #pragma warning disable CA1031
             try
             {
-                ethernaCommandOptions.ParseArgs(args, tmpIoService);
+                if (args.Length != 1 || (args[0] != "-h" && args[0] != "--help"))
+                    ethernaCommandOptions.ParseArgs(args, tmpIoService);
             }
             catch (Exception e)
             {
