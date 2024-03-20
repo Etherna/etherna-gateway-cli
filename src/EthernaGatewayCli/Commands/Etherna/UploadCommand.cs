@@ -120,7 +120,20 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 if (!uploadSucceeded)
                     IoService.WriteErrorLine($"Can't upload \"{filePath}\" after {UploadMaxRetry} retries");
                 else if (Options.OfferDownload)
-                    await gatewayService.OfferResourceAsync(refHash);
+                {
+#pragma warning disable CA1031
+                    try
+                    {
+                        await gatewayService.OfferResourceAsync(refHash);
+                        IoService.WriteLine($"Resource offered to download");
+                    }
+                    catch (Exception e)
+                    {
+                        IoService.WriteErrorLine($"Error offering resource download");
+                        IoService.WriteLine(e.ToString());
+                    }
+#pragma warning restore CA1031
+                }
             }
         }
 
