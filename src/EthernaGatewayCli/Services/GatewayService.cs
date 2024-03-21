@@ -119,15 +119,18 @@ namespace Etherna.GatewayCli.Services
 
             return batchId;
         }
+
+        public Task FundResourcePinningAsync(string hash) =>
+            ethernaGatewayClient.ResourcesClient.PinPostAsync(hash);
+
+        public Task FundResourceTrafficAsync(string hash) =>
+            ethernaGatewayClient.ResourcesClient.OffersPostAsync(hash);
         
         public async Task<long> GetCurrentChainPriceAsync() =>
             (await ethernaGatewayClient.SystemClient.ChainstateAsync()).CurrentPrice;
 
         public Task<PostageBatchDto> GetPostageBatchInfoAsync(string batchId) =>
             ethernaGatewayClient.UsersClient.BatchesGetAsync(batchId);
-
-        public Task OfferResourceAsync(string hash) =>
-            ethernaGatewayClient.ResourcesClient.OffersPostAsync(hash);
 
         public Task<string> UploadFileAsync(
             string postageBatchId,

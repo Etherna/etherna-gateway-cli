@@ -31,7 +31,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
             new("-A", "--auto-purchase", "Auto purchase new postage batch", _ => NewPostageAutoPurchase = true),
             new("-l", "--label", "Label of new postage batch", args => NewPostageLabel = args[0], [typeof(string)]),
             new("-t", "--ttl", $"TTL (days) of new postage batch (default: {DefaultPostageBatchTtl.Days} days)", args => NewPostageTtl = TimeSpan.FromDays(int.Parse(args[0])), [typeof(int)]),
-            new("-o", "--offer", "Offer resource downloads to everyone", _ => OfferDownload = true),
+            new("-f", "--fund-traffic", "Fund resource traffic to everyone", _ => OfferDownload = true),
             new(null, "--no-pin", "Don't pin resource (pinning enabled by default)", _ => PinResource = false)
         };
         public override IEnumerable<OptionRequirementBase> Requirements => new OptionRequirementBase[]

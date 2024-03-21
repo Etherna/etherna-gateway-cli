@@ -28,9 +28,10 @@ namespace Etherna.GatewayCli.Services
         long CalculatePostageBatchByteSize(PostageBatchDto postageBatch);
         long CalculateRequiredPostageBatchSpace(long contentByteSize);
         Task<string> CreatePostageBatchAsync(long amount, int batchDepth, string? label);
+        Task FundResourcePinningAsync(string hash);
+        Task FundResourceTrafficAsync(string hash);
         Task<long> GetCurrentChainPriceAsync();
         Task<PostageBatchDto> GetPostageBatchInfoAsync(string batchId);
-        Task OfferResourceAsync(string hash);
         Task<string> UploadFileAsync(
             string postageBatchId,
             Stream content,

@@ -124,12 +124,12 @@ namespace Etherna.GatewayCli.Commands.Etherna
 #pragma warning disable CA1031
                     try
                     {
-                        await gatewayService.OfferResourceAsync(refHash);
-                        IoService.WriteLine($"Resource offered to download");
+                        await gatewayService.FundResourceTrafficAsync(refHash);
+                        IoService.WriteLine($"Resource traffic funded");
                     }
                     catch (Exception e)
                     {
-                        IoService.WriteErrorLine($"Error offering resource download");
+                        IoService.WriteErrorLine($"Error funding resource traffic");
                         IoService.WriteLine(e.ToString());
                     }
 #pragma warning restore CA1031
