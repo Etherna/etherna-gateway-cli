@@ -55,6 +55,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Resource
             await authService.SignInAsync();
 
             // Fund resource.
+            IoService.WriteLine($"Funding resource {resourceHash}...");
             if (Options.FundPinning)
             {
 #pragma warning disable CA1031
