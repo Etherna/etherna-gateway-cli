@@ -15,6 +15,7 @@
 using Etherna.GatewayCli.Models.Commands;
 using Etherna.GatewayCli.Services;
 using System;
+using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Resource
 {
@@ -28,5 +29,10 @@ namespace Etherna.GatewayCli.Commands.Etherna.Resource
         }
 
         public override string Description => "List resources";
+
+        protected override Task ExecuteAsync(string[] commandArgs)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

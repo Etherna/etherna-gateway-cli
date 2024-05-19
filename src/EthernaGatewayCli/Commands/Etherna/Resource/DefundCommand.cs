@@ -15,6 +15,7 @@
 using Etherna.GatewayCli.Models.Commands;
 using Etherna.GatewayCli.Services;
 using System;
+using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Resource
 {
@@ -29,5 +30,10 @@ namespace Etherna.GatewayCli.Commands.Etherna.Resource
 
         public override string CommandArgsHelpString => "RESOURCE_ID";
         public override string Description => "Defund resource budget";
+
+        protected override Task ExecuteAsync(string[] commandArgs)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

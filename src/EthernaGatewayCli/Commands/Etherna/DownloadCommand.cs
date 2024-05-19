@@ -47,8 +47,8 @@ namespace Etherna.GatewayCli.Commands.Etherna
         {
             if (!Options.RunAnonymously)
                 await authService.SignInAsync();
-            
-            
+
+            throw new NotImplementedException();
         }
     }
 }
