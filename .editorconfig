@@ -1,0 +1,41 @@
+﻿# Remove the line below if you want to inherit .editorconfig settings from higher directories
+root = true
+
+#### Define style ####
+
+# All files
+[*]
+indent_style = space
+
+# C# Project, JS and CSS files
+[*.{csproj,js,ts,css,scss}]
+indent_size = 2
+
+#### Suppress warnings ####
+
+# C# files
+[*.cs]
+
+# CA1056: Uri properties should not be strings
+dotnet_diagnostic.CA1056.severity = none
+
+# CA1303: Do not pass literals as localized parameters
+dotnet_diagnostic.CA1303.severity = none    # Don't need translated exceptions
+
+# CA1308: Normalize strings to uppercase
+dotnet_diagnostic.CA1308.severity = none    # Also to lower is required
+
+# CA1707: Identifiers should not contain underscores
+dotnet_diagnostic.CA1707.severity = none    # I like underscores into constants name
+
+# CA1812: Avoid uninstantiated internal classes
+dotnet_diagnostic.CA1812.severity = none    # Doing extensive use of Dependency Injection
+
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = none    # Don't like static members
+
+# CA2007: Consider calling ConfigureAwait on the awaited task
+dotnet_diagnostic.CA2007.severity = none    # .Net core doesn't require it
+
+# CA2234: Pass system uri objects instead of strings
+dotnet_diagnostic.CA2234.severity = none
