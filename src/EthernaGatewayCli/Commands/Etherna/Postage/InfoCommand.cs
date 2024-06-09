@@ -12,9 +12,11 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.BeeNet.JsonConverters;
+using Etherna.BeeNet.Models;
 using Etherna.GatewayCli.Models.Commands;
 using Etherna.GatewayCli.Services;
-using Etherna.Sdk.GeneratedClients.Gateway;
+using Etherna.Sdk.Common.GenClients.Gateway;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -24,7 +26,16 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
     public class InfoCommand : CommandBase
     {
         // Consts.
-        private static readonly JsonSerializerOptions SerializerOptions = new() { WriteIndented = true };
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            Converters =
+            {
+                new BzzBalanceJsonConverter(),
+                new PostageBatchIdJsonConverter(),
+                new XDaiBalanceJsonConverter()
+            },
+            WriteIndented = true
+        };
         
         // Fields.
         private readonly IAuthenticationService authService;
@@ -59,7 +70,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
             await authService.SignInAsync();
 
             // Get postage info
-            PostageBatchDto? postageBatch = null;
+            PostageBatch? postageBatch = null;
             try
             {
                 postageBatch = await gatewayService.GetPostageBatchInfoAsync(commandArgs[0]);

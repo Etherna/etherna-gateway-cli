@@ -12,9 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.GatewayCli.Models.Domain;
-using Etherna.Sdk.GeneratedClients.Gateway;
-using System;
+using Etherna.BeeNet.Models;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -22,18 +21,16 @@ namespace Etherna.GatewayCli.Services
 {
     public interface IGatewayService
     {
-        Task<long> CalculateAmountAsync(TimeSpan ttl);
-        BzzBalance CalculateBzzPrice(long amount, int depth);
-        int CalculateDepth(long contentByteSize);
-        long CalculatePostageBatchByteSize(PostageBatchDto postageBatch);
-        long CalculateRequiredPostageBatchSpace(long contentByteSize);
-        Task<string> CreatePostageBatchAsync(long amount, int batchDepth, string? label);
-        Task FundResourcePinningAsync(string hash);
-        Task FundResourceTrafficAsync(string hash);
-        Task<long> GetCurrentChainPriceAsync();
-        Task<PostageBatchDto> GetPostageBatchInfoAsync(string batchId);
-        Task<string> UploadFileAsync(
-            string postageBatchId,
+        Task<int> CalculatePostageBatchDepthAsync(Stream fileStream, string fileContentType, string fileName);
+        Task<int> CalculatePostageBatchDepthAsync(byte[] fileData, string fileContentType, string fileName);
+        Task<int> CalculatePostageBatchDepthAsync(IEnumerable<string> filePaths);
+        Task<PostageBatchId> CreatePostageBatchAsync(BzzBalance amount, int batchDepth, string? label);
+        Task FundResourceDownloadAsync(SwarmAddress address);
+        Task FundResourcePinningAsync(SwarmAddress address);
+        Task<BzzBalance> GetChainPriceAsync();
+        Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId);
+        Task<SwarmAddress> UploadFileAsync(
+            PostageBatchId batchId,
             Stream content,
             string? name,
             string? contentType,

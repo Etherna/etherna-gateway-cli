@@ -13,10 +13,9 @@
 //   limitations under the License.
 
 using Etherna.BeeNet;
-using Etherna.BeeNet.Clients.GatewayApi;
+using Etherna.BeeNet.Services;
 using Etherna.GatewayCli.Services;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Net.Http;
 
 namespace Etherna.GatewayCli
@@ -29,19 +28,19 @@ namespace Etherna.GatewayCli
             // Add transient services.
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<IFileService, FileService>();
+            services.AddTransient<ICalculatorService, CalculatorService>();
             services.AddTransient<IGatewayService, GatewayService>();
             services.AddTransient<IIoService, ConsoleIoService>();
 
             // Add singleton services.
             //bee.net
-            services.AddSingleton<IBeeGatewayClient>((sp) =>
+            services.AddSingleton<IBeeClient>((sp) =>
             {
                 var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-                return new BeeGatewayClient(
-                    httpClientFactory.CreateClient(CommonConsts.HttpClientName),
-                    new Uri(CommonConsts.EthernaGatewayUrl));
+                return new BeeClient(
+                    CommonConsts.EthernaGatewayUrl,
+                    customHttpClient: httpClientFactory.CreateClient(CommonConsts.HttpClientName));
             });
-            services.AddSingleton<IBeeNodeClient, BeeNodeClient>();
         }
     }
 }

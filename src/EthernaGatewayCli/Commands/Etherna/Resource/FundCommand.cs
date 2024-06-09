@@ -77,7 +77,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Resource
 #pragma warning disable CA1031
                 try
                 {
-                    await gatewayService.FundResourceTrafficAsync(resourceHash);
+                    await gatewayService.FundResourceDownloadAsync(resourceHash);
                     IoService.WriteLine($"Resource traffic funded");
                 }
                 catch (Exception e)

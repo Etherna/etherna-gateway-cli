@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.BeeNet.Models;
 using Etherna.GatewayCli.Models.Commands;
 using Etherna.GatewayCli.Services;
 using System;
@@ -53,9 +54,15 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
             await authService.SignInAsync();
             
             // Create postage.
-            var amount = Options.Amount ?? (Options.Ttl.HasValue
-                 ? await gatewayService.CalculateAmountAsync(Options.Ttl.Value)
-                 : throw new InvalidOperationException("Amount ot ttl are required"));
+            BzzBalance amount;
+            if (Options.Amount.HasValue) amount = Options.Amount.Value;
+            else if (Options.Ttl.HasValue)
+            {
+                var chainPrice = await gatewayService.GetChainPriceAsync();
+                amount = PostageBatch.CalculateAmount(chainPrice, Options.Ttl.Value);
+            }
+            else throw new InvalidOperationException("Amount or TTL are required");
+            
             var batchId = await gatewayService.CreatePostageBatchAsync(amount, Options.Depth, Options.Label);
             
             // Print result.
