@@ -192,16 +192,17 @@ namespace Etherna.GatewayCli.Commands.Etherna
                     throw new InvalidOperationException();
                 }
                 
-                //verify if it has available space
-                throw new NotImplementedException("Access to current buckets is required. See: https://etherna.atlassian.net/browse/ESG-269");
+                Console.WriteLine("Attention! Provided postage batch will be used without requirements checks!");
+                //See: https://etherna.atlassian.net/browse/ESG-269
+                // // verify if it has available space
                 // if (gatewayService.CalculatePostageBatchByteSize(postageBatch) -
                 //     gatewayService.CalculateRequiredPostageBatchSpace(contentByteSize) < 0)
                 // {
                 //     IoService.WriteErrorLine($"Postage batch \"{Options.UsePostageBatchId}\" has not enough space.");
                 //     throw new InvalidOperationException();
                 // }
-                //
-                // return postageBatch.Id;
+                
+                return postageBatch.Id;
             }
         }
     }
