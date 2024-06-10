@@ -139,7 +139,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 var amount = PostageBatch.CalculateAmount(chainPrice, Options.NewPostageTtl);
                 var bzzPrice = PostageBatch.CalculatePrice(amount, batchDepth);
 
-                IoService.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
+                IoService.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount.ToPlurString()}, BZZ price: {bzzPrice}");
 
                 if (!Options.NewPostageAutoPurchase)
                 {

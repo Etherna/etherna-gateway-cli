@@ -20,7 +20,9 @@ using Etherna.Sdk.Common.GenClients.Gateway;
 using Etherna.Sdk.Users.Clients;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Services
@@ -47,15 +49,18 @@ namespace Etherna.GatewayCli.Services
             (await calculatorService.EvaluateFileUploadAsync(fileData, fileContentType, fileName))
             .RequiredPostageBatchDepth;
 
+        [SuppressMessage("Performance", "CA1851:Possible multiple enumerations of \'IEnumerable\' collection")]
         public async Task<int> CalculatePostageBatchDepthAsync(IEnumerable<string> filePaths)
         {
             ArgumentNullException.ThrowIfNull(filePaths, nameof(filePaths));
+            if (!filePaths.Any())
+                throw new ArgumentOutOfRangeException(nameof(filePaths), "Empty file paths");
             
             ioService.Write("Calculating required postage batch depth... ");
 
             var buckets = new uint[PostageStampIssuer.BucketsSize];
             var stampIssuer = new PostageStampIssuer(PostageBatch.MaxDepthInstance, buckets);
-            var requiredDepth = 0;
+            UploadEvaluationResult lastResult = null!;
             foreach (var filePath in filePaths)
             {
                 if (!File.Exists(filePath))
@@ -65,17 +70,16 @@ namespace Etherna.GatewayCli.Services
                 var mimeType = fileService.GetMimeType(filePath);
                 var fileName = Path.GetFileName(filePath);
 
-                var result = await calculatorService.EvaluateFileUploadAsync(
+                lastResult = await calculatorService.EvaluateFileUploadAsync(
                     fileStream,
                     mimeType,
                     fileName,
                     postageStampIssuer: stampIssuer);
-                requiredDepth = result.RequiredPostageBatchDepth;
             }
 
             ioService.WriteLine("Done");
 
-            return requiredDepth;
+            return lastResult.RequiredPostageBatchDepth;
         }
 
         public async Task<PostageBatchId> CreatePostageBatchAsync(BzzBalance amount, int batchDepth, string? label)
@@ -87,7 +91,7 @@ namespace Etherna.GatewayCli.Services
             
             // Start creation.
             var bzzPrice = PostageBatch.CalculatePrice(amount, batchDepth);
-            ioService.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
+            ioService.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount.ToPlurString()}, BZZ price: {bzzPrice}");
             var batchReferenceId = await ethernaGatewayClient.BuyPostageBatchAsync(amount, batchDepth, label);
 
             // Wait until created batch is available.

@@ -38,8 +38,8 @@ namespace Etherna.GatewayCli
             {
                 var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
                 return new BeeClient(
-                    CommonConsts.EthernaGatewayUrl,
-                    customHttpClient: httpClientFactory.CreateClient(CommonConsts.HttpClientName));
+                    CommonConsts.EthernaGatewayUrl, 443,
+                    httpClientFactory.CreateClient(CommonConsts.HttpClientName));
             });
         }
     }
