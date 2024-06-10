@@ -12,7 +12,6 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.BeeNet;
 using Etherna.BeeNet.Hasher.Postage;
 using Etherna.BeeNet.Models;
 using Etherna.BeeNet.Services;
@@ -28,7 +27,6 @@ using System.Threading.Tasks;
 namespace Etherna.GatewayCli.Services
 {
     public class GatewayService(
-        IBeeClient beeClient,
         ICalculatorService calculatorService,
         IEthernaUserGatewayClient ethernaGatewayClient,
         IFileService fileService,
@@ -145,7 +143,7 @@ namespace Etherna.GatewayCli.Services
             string? name,
             string? contentType,
             bool pinResource) =>
-            beeClient.UploadFileAsync(
+            ethernaGatewayClient.UploadFileAsync(
                 batchId,
                 content,
                 name: name,

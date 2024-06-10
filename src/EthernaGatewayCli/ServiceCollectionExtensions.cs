@@ -31,16 +31,6 @@ namespace Etherna.GatewayCli
             services.AddTransient<ICalculatorService, CalculatorService>();
             services.AddTransient<IGatewayService, GatewayService>();
             services.AddTransient<IIoService, ConsoleIoService>();
-
-            // Add singleton services.
-            //bee.net
-            services.AddSingleton<IBeeClient>((sp) =>
-            {
-                var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-                return new BeeClient(
-                    CommonConsts.EthernaGatewayUrl, 443,
-                    httpClientFactory.CreateClient(CommonConsts.HttpClientName));
-            });
         }
     }
 }

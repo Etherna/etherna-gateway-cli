@@ -12,9 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using Etherna.BeeNet;
 using Etherna.GatewayCli.Models.Commands;
 using Etherna.GatewayCli.Services;
+using Etherna.Sdk.Users.Clients;
 using System;
 using System.Threading.Tasks;
 
@@ -24,18 +24,18 @@ namespace Etherna.GatewayCli.Commands.Etherna
     {
         // Fields.
         private readonly IAuthenticationService authService;
-        private readonly IBeeClient beeClient;
+        private readonly IEthernaUserGatewayClient gatewayClient;
 
         // Constructor.
         public DownloadCommand(
             IAuthenticationService authService,
-            IBeeClient beeClient,
+            IEthernaUserGatewayClient gatewayClient,
             IIoService ioService,
             IServiceProvider serviceProvider)
             : base(ioService, serviceProvider)
         {
             this.authService = authService;
-            this.beeClient = beeClient;
+            this.gatewayClient = gatewayClient;
         }
         
         // Properties.
