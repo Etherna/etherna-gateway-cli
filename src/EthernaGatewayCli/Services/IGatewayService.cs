@@ -25,11 +25,11 @@ namespace Etherna.GatewayCli.Services
         Task<int> CalculatePostageBatchDepthAsync(byte[] fileData, string fileContentType, string fileName);
         Task<int> CalculatePostageBatchDepthAsync(IEnumerable<string> filePaths);
         Task<PostageBatchId> CreatePostageBatchAsync(BzzBalance amount, int batchDepth, string? label);
-        Task FundResourceDownloadAsync(SwarmAddress address);
-        Task FundResourcePinningAsync(SwarmAddress address);
+        Task FundResourceDownloadAsync(SwarmHash hash);
+        Task FundResourcePinningAsync(SwarmHash hash);
         Task<BzzBalance> GetChainPriceAsync();
         Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId);
-        Task<SwarmAddress> UploadFileAsync(
+        Task<SwarmHash> UploadFileAsync(
             PostageBatchId batchId,
             Stream content,
             string? name,

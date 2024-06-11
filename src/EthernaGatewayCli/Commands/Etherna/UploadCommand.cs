@@ -76,7 +76,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 IoService.WriteLine($"Uploading {filePath}...");
                 
                 var uploadSucceeded = false;
-                SwarmAddress address = default!;
+                SwarmHash hash = default!;
                 for (int i = 0; i < UploadMaxRetry && !uploadSucceeded; i++)
                 {
                     try
@@ -84,13 +84,13 @@ namespace Etherna.GatewayCli.Commands.Etherna
                         await using var fileStream = File.OpenRead(filePath);
                         var mimeType = fileService.GetMimeType(filePath);
                         
-                        address = await gatewayService.UploadFileAsync(
+                        hash = await gatewayService.UploadFileAsync(
                             postageBatchId,
                             fileStream,
                             Path.GetFileName(filePath),
                             mimeType,
                             Options.PinResource);
-                        IoService.WriteLine($"Address: {address}");
+                        IoService.WriteLine($"Hash: {hash}");
                         
                         uploadSucceeded = true;
                     }
@@ -116,7 +116,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
 #pragma warning disable CA1031
                     try
                     {
-                        await gatewayService.FundResourceDownloadAsync(address);
+                        await gatewayService.FundResourceDownloadAsync(hash);
                         IoService.WriteLine($"Resource traffic funded");
                     }
                     catch (Exception e)

@@ -125,11 +125,11 @@ namespace Etherna.GatewayCli.Services
             return batchId.Value;
         }
 
-        public Task FundResourceDownloadAsync(SwarmAddress address) =>
-            ethernaGatewayClient.FundResourceDownloadAsync(address);
+        public Task FundResourceDownloadAsync(SwarmHash hash) =>
+            ethernaGatewayClient.FundResourceDownloadAsync(hash);
 
-        public Task FundResourcePinningAsync(SwarmAddress address) =>
-            ethernaGatewayClient.FundResourcePinningAsync(address);
+        public Task FundResourcePinningAsync(SwarmHash hash) =>
+            ethernaGatewayClient.FundResourcePinningAsync(hash);
         
         public async Task<BzzBalance> GetChainPriceAsync() =>
             (await ethernaGatewayClient.GetChainStateAsync()).CurrentPrice;
@@ -137,7 +137,7 @@ namespace Etherna.GatewayCli.Services
         public Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId) =>
             ethernaGatewayClient.GetPostageBatchAsync(batchId);
 
-        public Task<SwarmAddress> UploadFileAsync(
+        public Task<SwarmHash> UploadFileAsync(
             PostageBatchId batchId,
             Stream content,
             string? name,
