@@ -56,7 +56,7 @@ namespace Etherna.GatewayCli.Services
             
             ioService.Write("Calculating required postage batch depth... ");
 
-            var buckets = new uint[PostageStampIssuer.BucketsSize];
+            var buckets = new uint[PostageBuckets.BucketsSize];
             var stampIssuer = new PostageStampIssuer(PostageBatch.MaxDepthInstance, buckets);
             UploadEvaluationResult lastResult = null!;
             foreach (var filePath in filePaths)
