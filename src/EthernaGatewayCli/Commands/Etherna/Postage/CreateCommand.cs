@@ -13,9 +13,11 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
-using Etherna.GatewayCli.Models.Commands;
+using Etherna.CliHelper.Models.Commands;
+using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Postage
@@ -28,11 +30,12 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
 
         // Constructor.
         public CreateCommand(
+            Assembly assembly,
             IAuthenticationService authService,
             IGatewayService gatewayService,
             IIoService ioService,
             IServiceProvider serviceProvider)
-            : base(ioService, serviceProvider)
+            : base(assembly, ioService, serviceProvider)
         {
             this.authService = authService;
             this.gatewayService = gatewayService;

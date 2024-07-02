@@ -12,11 +12,11 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet;
 using Etherna.BeeNet.Services;
+using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using Microsoft.Extensions.DependencyInjection;
-using System.Net.Http;
+using System.Reflection;
 
 namespace Etherna.GatewayCli
 {
@@ -31,6 +31,9 @@ namespace Etherna.GatewayCli
             services.AddTransient<ICalculatorService, CalculatorService>();
             services.AddTransient<IGatewayService, GatewayService>();
             services.AddTransient<IIoService, ConsoleIoService>();
+            
+            // Add singleton services.
+            services.AddSingleton(typeof(Program).GetTypeInfo().Assembly);
         }
     }
 }

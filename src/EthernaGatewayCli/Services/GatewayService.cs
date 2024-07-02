@@ -15,6 +15,7 @@
 using Etherna.BeeNet.Hasher.Postage;
 using Etherna.BeeNet.Models;
 using Etherna.BeeNet.Services;
+using Etherna.CliHelper.Services;
 using Etherna.Sdk.Common.GenClients.Gateway;
 using Etherna.Sdk.Users.Clients;
 using System;
