@@ -12,10 +12,12 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.GatewayCli.Models.Commands;
+using Etherna.CliHelper.Models.Commands;
+using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Users.Clients;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna
@@ -28,11 +30,12 @@ namespace Etherna.GatewayCli.Commands.Etherna
 
         // Constructor.
         public DownloadCommand(
+            Assembly assembly,
             IAuthenticationService authService,
             IEthernaUserGatewayClient gatewayClient,
             IIoService ioService,
             IServiceProvider serviceProvider)
-            : base(ioService, serviceProvider)
+            : base(assembly, ioService, serviceProvider)
         {
             this.authService = authService;
             this.gatewayClient = gatewayClient;

@@ -14,10 +14,12 @@
 
 using Etherna.BeeNet.JsonConverters;
 using Etherna.BeeNet.Models;
-using Etherna.GatewayCli.Models.Commands;
+using Etherna.CliHelper.Models.Commands;
+using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Common.GenClients.Gateway;
 using System;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -43,11 +45,12 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
 
         // Constructor.
         public InfoCommand(
+            Assembly assembly,
             IAuthenticationService authService,
             IGatewayService gatewayService,
             IIoService ioService,
             IServiceProvider serviceProvider)
-            : base(ioService, serviceProvider)
+            : base(assembly, ioService, serviceProvider)
         {
             this.authService = authService;
             this.gatewayService = gatewayService;

@@ -12,8 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.GatewayCli.Models.Commands;
-using System;
+using Etherna.CliHelper.Models.Commands;
 using System.Collections.Generic;
 
 namespace Etherna.GatewayCli.Commands

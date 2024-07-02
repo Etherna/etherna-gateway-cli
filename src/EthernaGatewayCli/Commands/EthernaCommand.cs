@@ -12,10 +12,11 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.GatewayCli.Models.Commands;
-using Etherna.GatewayCli.Services;
+using Etherna.CliHelper.Models.Commands;
+using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Utilities;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands
@@ -24,9 +25,10 @@ namespace Etherna.GatewayCli.Commands
     {
         // Constructor.
         public EthernaCommand(
+            Assembly assembly,
             IIoService ioService,
             IServiceProvider serviceProvider)
-            : base(ioService, serviceProvider)
+            : base(assembly, ioService, serviceProvider)
         { }
         
         // Properties.

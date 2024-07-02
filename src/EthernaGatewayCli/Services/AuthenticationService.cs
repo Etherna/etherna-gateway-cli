@@ -14,6 +14,7 @@
 
 using Etherna.Authentication;
 using Etherna.Authentication.Native;
+using Etherna.CliHelper.Services;
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
