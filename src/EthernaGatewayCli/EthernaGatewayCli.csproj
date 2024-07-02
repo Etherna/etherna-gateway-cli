@@ -31,8 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bee.Net" Version="0.2.0-alpha.239" />
-    <PackageReference Include="EthernaSdk.Users.Native" Version="0.4.0-alpha.32" />
+    <PackageReference Include="Etherna.CliHelper" Version="0.1.0" />
+    <PackageReference Include="EthernaSdk.Users.Native" Version="0.4.0-alpha.56" />
     <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -41,7 +41,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Mime-Detective" Version="23.10.1" />
+    <PackageReference Include="Mime-Detective" Version="24.5.1" />
   </ItemGroup>
 
 </Project>

@@ -1,23 +1,25 @@
 // Copyright 2024-present Etherna SA
+// This file is part of Etherna Gateway CLI.
 // 
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
+// Etherna Gateway CLI is free software: you can redistribute it and/or modify it under the terms of the
+// GNU Affero General Public License as published by the Free Software Foundation,
+// either version 3 of the License, or (at your option) any later version.
 // 
-//       http://www.apache.org/licenses/LICENSE-2.0
+// Etherna Gateway CLI is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU Affero General Public License for more details.
 // 
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
+// You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
+// If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.InputModels;
-using Etherna.GatewayCli.Models.Commands;
+using Etherna.BeeNet.Models;
+using Etherna.CliHelper.Models.Commands;
+using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
-using Etherna.Sdk.GeneratedClients.Gateway;
+using Etherna.Sdk.Common.GenClients.Gateway;
 using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna
@@ -35,12 +37,13 @@ namespace Etherna.GatewayCli.Commands.Etherna
 
         // Constructor.
         public UploadCommand(
+            Assembly assembly,
             IAuthenticationService authService,
             IFileService fileService,
             IGatewayService gatewayService,
             IIoService ioService,
             IServiceProvider serviceProvider)
-            : base(ioService, serviceProvider)
+            : base(assembly, ioService, serviceProvider)
         {
             this.authService = authService;
             this.fileService = fileService;
@@ -48,8 +51,8 @@ namespace Etherna.GatewayCli.Commands.Etherna
         }
         
         // Properties.
-        public override string CommandArgsHelpString => "SOURCE_FILE [SOURCE_FILE ...]";
-        public override string Description => "Upload a file resource to Swarm";
+        public override string CommandArgsHelpString => "SOURCE [SOURCE ...]";
+        public override string Description => "Upload files and directories to Swarm";
 
         // Methods.
         protected override async Task ExecuteAsync(string[] commandArgs)
@@ -59,53 +62,58 @@ namespace Etherna.GatewayCli.Commands.Etherna
             // Parse args.
             if (commandArgs.Length < 1)
                 throw new ArgumentException("Upload requires 1 or more arguments");
-            var filePaths = commandArgs;
-            
-            // Search files and calculate total file size.
-            var contentByteSize = 0L;
-            foreach (var filePath in filePaths)
-            {
-                if (!File.Exists(filePath))
-                    throw new InvalidOperationException($"File {filePath} doesn't exist");
- 
-                var fileInfo = new FileInfo(filePath);
-                contentByteSize += fileInfo.Length;
-            }
+            var paths = commandArgs;
 
             // Authenticate user.
             await authService.SignInAsync();
             
+            // Search files and calculate required postage batch depth.
+            var batchDepth = await gatewayService.CalculatePostageBatchDepthAsync(paths);
+            
             // Identify postage batch to use.
-            var postageBatchId = await GetUsablePostageBatchIdAsync(contentByteSize);
+            var postageBatchId = await GetUsablePostageBatchIdAsync(batchDepth);
 
             // Upload file.
-            foreach (var filePath in filePaths)
+            foreach (var path in paths)
             {
-                IoService.WriteLine($"Uploading {filePath}...");
+                IoService.WriteLine($"Uploading {path}...");
                 
                 var uploadSucceeded = false;
-                string refHash = default!;
+                SwarmHash hash = default!;
                 for (int i = 0; i < UploadMaxRetry && !uploadSucceeded; i++)
                 {
                     try
                     {
-                        await using var fileStream = File.Open(filePath, FileMode.Open);
-                        var mimeType = fileService.GetMimeType(filePath);
+                        if(File.Exists(path)) //is a file
+                        {
+                            await using var fileStream = File.OpenRead(path);
+                            var mimeType = fileService.GetMimeType(path);
                         
-                        refHash = await gatewayService.UploadFileAsync(
-                            postageBatchId,
-                            fileStream,
-                            Path.GetFileName(filePath),
-                            mimeType,
-                            Options.PinResource);
-                        IoService.WriteLine($"Ref hash: {refHash}");
+                            hash = await gatewayService.UploadFileAsync(
+                                postageBatchId,
+                                fileStream,
+                                Path.GetFileName(path),
+                                mimeType,
+                                Options.PinResource);
+                        }
+                        else if (Directory.Exists(path)) //is a directory
+                        {
+                            hash = await gatewayService.UploadDirectoryAsync(
+                                postageBatchId,
+                                path,
+                                Options.PinResource);
+                        }
+                        else //invalid path
+                            throw new InvalidOperationException($"Path {path} is not valid");
+                        
+                        IoService.WriteLine($"Hash: {hash}");
                         
                         uploadSucceeded = true;
                     }
 #pragma warning disable CA1031
                     catch (Exception e)
                     {
-                        IoService.WriteErrorLine($"Error uploading {filePath}");
+                        IoService.WriteErrorLine($"Error uploading {path}");
                         IoService.WriteLine(e.ToString());
                         
                         if (i + 1 < UploadMaxRetry)
@@ -118,13 +126,13 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 }
 
                 if (!uploadSucceeded)
-                    IoService.WriteErrorLine($"Can't upload \"{filePath}\" after {UploadMaxRetry} retries");
+                    IoService.WriteErrorLine($"Can't upload \"{path}\" after {UploadMaxRetry} retries");
                 else if (Options.OfferDownload)
                 {
 #pragma warning disable CA1031
                     try
                     {
-                        await gatewayService.FundResourceTrafficAsync(refHash);
+                        await gatewayService.FundResourceDownloadAsync(hash);
                         IoService.WriteLine($"Resource traffic funded");
                     }
                     catch (Exception e)
@@ -138,16 +146,16 @@ namespace Etherna.GatewayCli.Commands.Etherna
         }
 
         // Helpers.
-        private async Task<string> GetUsablePostageBatchIdAsync(long contentByteSize)
+        private async Task<PostageBatchId> GetUsablePostageBatchIdAsync(int batchDepth)
         {
             if (Options.UsePostageBatchId is null)
             {
                 //create a new postage batch
-                var batchDepth = gatewayService.CalculateDepth(contentByteSize);
-                var amount = await gatewayService.CalculateAmountAsync(Options.NewPostageTtl);
-                var bzzPrice = gatewayService.CalculateBzzPrice(amount, batchDepth);
+                var chainPrice = await gatewayService.GetChainPriceAsync();
+                var amount = PostageBatch.CalculateAmount(chainPrice, Options.NewPostageTtl);
+                var bzzPrice = PostageBatch.CalculatePrice(amount, batchDepth);
 
-                IoService.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
+                IoService.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount.ToPlurString()}, BZZ price: {bzzPrice}");
 
                 if (!Options.NewPostageAutoPurchase)
                 {
@@ -182,7 +190,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
             else
             {
                 //get info about existing postage batch
-                PostageBatchDto postageBatch;
+                PostageBatch postageBatch;
                 try
                 {
                     postageBatch = await gatewayService.GetPostageBatchInfoAsync(Options.UsePostageBatchId);
@@ -194,20 +202,22 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 }
                 
                 //verify if it is usable
-                if (!postageBatch.Usable)
+                if (!postageBatch.IsUsable)
                 {
                     IoService.WriteErrorLine($"Postage batch \"{Options.UsePostageBatchId}\" is not usable.");
                     throw new InvalidOperationException();
                 }
                 
-                //verify if it has available space
-                if (gatewayService.CalculatePostageBatchByteSize(postageBatch) -
-                    gatewayService.CalculateRequiredPostageBatchSpace(contentByteSize) < 0)
-                {
-                    IoService.WriteErrorLine($"Postage batch \"{Options.UsePostageBatchId}\" has not enough space.");
-                    throw new InvalidOperationException();
-                }
-
+                Console.WriteLine("Attention! Provided postage batch will be used without requirements checks!");
+                //See: https://etherna.atlassian.net/browse/ESG-269
+                // // verify if it has available space
+                // if (gatewayService.CalculatePostageBatchByteSize(postageBatch) -
+                //     gatewayService.CalculateRequiredPostageBatchSpace(contentByteSize) < 0)
+                // {
+                //     IoService.WriteErrorLine($"Postage batch \"{Options.UsePostageBatchId}\" has not enough space.");
+                //     throw new InvalidOperationException();
+                // }
+                
                 return postageBatch.Id;
             }
         }

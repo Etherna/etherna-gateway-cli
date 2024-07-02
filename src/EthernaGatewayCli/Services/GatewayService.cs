@@ -1,97 +1,112 @@
 // Copyright 2024-present Etherna SA
+// This file is part of Etherna Gateway CLI.
 // 
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
+// Etherna Gateway CLI is free software: you can redistribute it and/or modify it under the terms of the
+// GNU Affero General Public License as published by the Free Software Foundation,
+// either version 3 of the License, or (at your option) any later version.
 // 
-//       http://www.apache.org/licenses/LICENSE-2.0
+// Etherna Gateway CLI is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU Affero General Public License for more details.
 // 
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
+// You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
+// If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Clients.GatewayApi;
-using Etherna.GatewayCli.Models.Domain;
-using Etherna.Sdk.GeneratedClients.Gateway;
-using Etherna.Sdk.Users;
+using Etherna.BeeNet.Hasher.Postage;
+using Etherna.BeeNet.Models;
+using Etherna.BeeNet.Services;
+using Etherna.CliHelper.Services;
+using Etherna.Sdk.Common.GenClients.Gateway;
+using Etherna.Sdk.Users.Clients;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Services
 {
-    public class GatewayService : IGatewayService
+    public class GatewayService(
+        ICalculatorService calculatorService,
+        IEthernaUserGatewayClient ethernaGatewayClient,
+        IFileService fileService,
+        IIoService ioService)
+        : IGatewayService
     {
         // Const.
         private readonly TimeSpan BatchCheckTimeSpan = new(0, 0, 0, 5);
         private readonly TimeSpan BatchCreationTimeout = new(0, 0, 10, 0);
         private readonly TimeSpan BatchUsableTimeout = new(0, 0, 10, 0);
-        private readonly long BzzDecimalPlacesToUnit = (long)Math.Pow(10, 16);
-        private const int ChunkByteSize = 4096;
-        private const int MinBatchDepth = 17;
-        
-        // Fields.
-        private readonly IBeeGatewayClient beeGatewayClient;
-        private readonly IEthernaUserGatewayClient ethernaGatewayClient;
-        private readonly IIoService ioService;
-
-        // Constructor.
-        public GatewayService(
-            IBeeGatewayClient beeGatewayClient,
-            IEthernaUserGatewayClient ethernaGatewayClient,
-            IIoService ioService)
-        {
-            this.beeGatewayClient = beeGatewayClient;
-            this.ethernaGatewayClient = ethernaGatewayClient;
-            this.ioService = ioService;
-        }
 
         // Methods.
-        public async Task<long> CalculateAmountAsync(TimeSpan ttl)
+        public async Task<int> CalculatePostageBatchDepthAsync(Stream fileStream, string fileContentType, string fileName) =>
+            (await calculatorService.EvaluateFileUploadAsync(fileStream, fileContentType, fileName))
+            .RequiredPostageBatchDepth;
+
+        public async Task<int> CalculatePostageBatchDepthAsync(byte[] fileData, string fileContentType, string fileName) =>
+            (await calculatorService.EvaluateFileUploadAsync(fileData, fileContentType, fileName))
+            .RequiredPostageBatchDepth;
+
+        [SuppressMessage("Performance", "CA1851:Possible multiple enumerations of \'IEnumerable\' collection")]
+        [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
+        public async Task<int> CalculatePostageBatchDepthAsync(IEnumerable<string> paths)
         {
-            var currentPrice = await GetCurrentChainPriceAsync();
-            return (long)(ttl.TotalSeconds * currentPrice / CommonConsts.GnosisBlockTime.TotalSeconds);
+            ArgumentNullException.ThrowIfNull(paths, nameof(paths));
+            if (!paths.Any())
+                throw new ArgumentOutOfRangeException(nameof(paths), "Empty file paths");
+            
+            ioService.Write("Calculating required postage batch depth... ");
+
+            var buckets = new uint[PostageBuckets.BucketsSize];
+            var stampIssuer = new PostageStampIssuer(PostageBatch.MaxDepthInstance, buckets);
+            UploadEvaluationResult lastResult = null!;
+            foreach (var path in paths)
+            {
+                if (File.Exists(path)) //is a file
+                {
+                    await using var fileStream = File.OpenRead(path);
+                    var mimeType = fileService.GetMimeType(path);
+                    var fileName = Path.GetFileName(path);
+
+                    lastResult = await calculatorService.EvaluateFileUploadAsync(
+                        fileStream,
+                        mimeType,
+                        fileName,
+                        postageStampIssuer: stampIssuer);
+                }
+                else if (Directory.Exists(path)) //is a directory
+                {
+                    lastResult = await calculatorService.EvaluateDirectoryUploadAsync(
+                        path,
+                        postageStampIssuer: stampIssuer);
+                }
+                else //invalid path
+                    throw new InvalidOperationException($"Path {path} is not valid");
+            }
+
+            ioService.WriteLine("Done");
+
+            return lastResult.RequiredPostageBatchDepth;
         }
 
-        public BzzBalance CalculateBzzPrice(long amount, int depth) =>
-            amount * Math.Pow(2, depth) / BzzDecimalPlacesToUnit;
-
-        public int CalculateDepth(long contentByteSize)
-        {
-            var batchDepth = 17;
-            while (Math.Pow(2, batchDepth) * ChunkByteSize < CalculateRequiredPostageBatchSpace(contentByteSize))
-                batchDepth++;
-            return batchDepth;
-        }
-
-        public long CalculatePostageBatchByteSize(PostageBatchDto postageBatch)
-        {
-            ArgumentNullException.ThrowIfNull(postageBatch, nameof(postageBatch));
-            return (long)Math.Pow(2, postageBatch.Depth) * ChunkByteSize;
-        }
-
-        public long CalculateRequiredPostageBatchSpace(long contentByteSize) =>
-            (long)(contentByteSize * 1.2); //keep 20% of tolerance
-
-        public async Task<string> CreatePostageBatchAsync(long amount, int batchDepth, string? label)
+        public async Task<PostageBatchId> CreatePostageBatchAsync(BzzBalance amount, int batchDepth, string? label)
         {
             if (amount <= 0)
                 throw new ArgumentException("Amount must be positive");
-            if (batchDepth < MinBatchDepth)
-                throw new ArgumentException($"Postage depth must be at least {MinBatchDepth}");
+            if (batchDepth < PostageBatch.MinDepth)
+                throw new ArgumentException($"Postage depth must be at least {PostageBatch.MinDepth}");
             
             // Start creation.
-            var bzzPrice = CalculateBzzPrice(amount, batchDepth);
-            ioService.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount}, BZZ price: {bzzPrice}");
-            var batchReferenceId = await ethernaGatewayClient.UsersClient.BatchesPostAsync(batchDepth, amount, label);
+            var bzzPrice = PostageBatch.CalculatePrice(amount, batchDepth);
+            ioService.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount.ToPlurString()}, BZZ price: {bzzPrice}");
+            var batchReferenceId = await ethernaGatewayClient.BuyPostageBatchAsync(amount, batchDepth, label);
 
             // Wait until created batch is available.
             ioService.Write("Waiting for batch created... (it may take a while)");
 
             var batchStartWait = DateTime.UtcNow;
-            string? batchId = null;
+            PostageBatchId? batchId = null;
             do
             {
                 //timeout throw exception
@@ -104,50 +119,60 @@ namespace Etherna.GatewayCli.Services
 
                 try
                 {
-                    batchId = await ethernaGatewayClient.SystemClient.PostageBatchRefAsync(batchReferenceId);
+                    batchId = await ethernaGatewayClient.TryGetNewPostageBatchIdFromPostageRefAsync(batchReferenceId);
                 }
                 catch (EthernaGatewayApiException)
                 {
                     //waiting for batchId available
                     await Task.Delay(BatchCheckTimeSpan);
                 }
-            } while (string.IsNullOrWhiteSpace(batchId));
+            } while (!batchId.HasValue);
 
             ioService.WriteLine(". Done");
 
-            await WaitForBatchUsableAsync(batchId);
+            await WaitForBatchUsableAsync(batchId.Value);
 
-            return batchId;
+            return batchId.Value;
         }
 
-        public Task FundResourcePinningAsync(string hash) =>
-            ethernaGatewayClient.ResourcesClient.PinPostAsync(hash);
+        public Task FundResourceDownloadAsync(SwarmHash hash) =>
+            ethernaGatewayClient.FundResourceDownloadAsync(hash);
 
-        public Task FundResourceTrafficAsync(string hash) =>
-            ethernaGatewayClient.ResourcesClient.OffersPostAsync(hash);
+        public Task FundResourcePinningAsync(SwarmHash hash) =>
+            ethernaGatewayClient.FundResourcePinningAsync(hash);
         
-        public async Task<long> GetCurrentChainPriceAsync() =>
-            (await ethernaGatewayClient.SystemClient.ChainstateAsync()).CurrentPrice;
+        public async Task<BzzBalance> GetChainPriceAsync() =>
+            (await ethernaGatewayClient.GetChainStateAsync()).CurrentPrice;
 
-        public Task<PostageBatchDto> GetPostageBatchInfoAsync(string batchId) =>
-            ethernaGatewayClient.UsersClient.BatchesGetAsync(batchId);
+        public Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId) =>
+            ethernaGatewayClient.GetPostageBatchAsync(batchId);
 
-        public Task<string> UploadFileAsync(
-            string postageBatchId,
+        public Task<SwarmHash> UploadFileAsync(
+            PostageBatchId batchId,
             Stream content,
             string? name,
             string? contentType,
             bool pinResource) =>
-            beeGatewayClient.UploadFileAsync(
-                postageBatchId,
+            ethernaGatewayClient.UploadFileAsync(
+                batchId,
                 content,
                 name: name,
                 contentType: contentType,
                 swarmDeferredUpload: true,
                 swarmPin: pinResource);
 
+        public Task<SwarmHash> UploadDirectoryAsync(
+            PostageBatchId batchId,
+            string directoryPath,
+            bool pinResource) =>
+            ethernaGatewayClient.UploadDirectoryAsync(
+                batchId,
+                directoryPath,
+                swarmDeferredUpload: true,
+                swarmPin: pinResource);
+
         // Helpers.
-        private async Task WaitForBatchUsableAsync(string batchId)
+        private async Task WaitForBatchUsableAsync(PostageBatchId batchId)
         {
             // Wait until created batch is usable.
             ioService.Write("Waiting for batch being usable... (it may take a while)");
@@ -164,7 +189,7 @@ namespace Etherna.GatewayCli.Services
                     throw ex;
                 }
 
-                batchIsUsable = (await GetPostageBatchInfoAsync(batchId)).Usable;
+                batchIsUsable = (await GetPostageBatchInfoAsync(batchId)).IsUsable;
 
                 //waiting for batch usable
                 await Task.Delay(BatchCheckTimeSpan);
