@@ -48,8 +48,8 @@ namespace Etherna.GatewayCli.Commands.Etherna
         }
         
         // Properties.
-        public override string CommandArgsHelpString => "SOURCE_FILE [SOURCE_FILE ...]";
-        public override string Description => "Upload a file resource to Swarm";
+        public override string CommandArgsHelpString => "SOURCE [SOURCE ...]";
+        public override string Description => "Upload files and directories to Swarm";
 
         // Methods.
         protected override async Task ExecuteAsync(string[] commandArgs)
@@ -59,21 +59,21 @@ namespace Etherna.GatewayCli.Commands.Etherna
             // Parse args.
             if (commandArgs.Length < 1)
                 throw new ArgumentException("Upload requires 1 or more arguments");
-            var filePaths = commandArgs;
+            var paths = commandArgs;
 
             // Authenticate user.
             await authService.SignInAsync();
             
             // Search files and calculate required postage batch depth.
-            var batchDepth = await gatewayService.CalculatePostageBatchDepthAsync(filePaths);
+            var batchDepth = await gatewayService.CalculatePostageBatchDepthAsync(paths);
             
             // Identify postage batch to use.
             var postageBatchId = await GetUsablePostageBatchIdAsync(batchDepth);
 
             // Upload file.
-            foreach (var filePath in filePaths)
+            foreach (var path in paths)
             {
-                IoService.WriteLine($"Uploading {filePath}...");
+                IoService.WriteLine($"Uploading {path}...");
                 
                 var uploadSucceeded = false;
                 SwarmHash hash = default!;
@@ -81,15 +81,28 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 {
                     try
                     {
-                        await using var fileStream = File.OpenRead(filePath);
-                        var mimeType = fileService.GetMimeType(filePath);
+                        if(File.Exists(path)) //is a file
+                        {
+                            await using var fileStream = File.OpenRead(path);
+                            var mimeType = fileService.GetMimeType(path);
                         
-                        hash = await gatewayService.UploadFileAsync(
-                            postageBatchId,
-                            fileStream,
-                            Path.GetFileName(filePath),
-                            mimeType,
-                            Options.PinResource);
+                            hash = await gatewayService.UploadFileAsync(
+                                postageBatchId,
+                                fileStream,
+                                Path.GetFileName(path),
+                                mimeType,
+                                Options.PinResource);
+                        }
+                        else if (Directory.Exists(path)) //is a directory
+                        {
+                            hash = await gatewayService.UploadDirectoryAsync(
+                                postageBatchId,
+                                path,
+                                Options.PinResource);
+                        }
+                        else //invalid path
+                            throw new InvalidOperationException($"Path {path} is not valid");
+                        
                         IoService.WriteLine($"Hash: {hash}");
                         
                         uploadSucceeded = true;
@@ -97,7 +110,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
 #pragma warning disable CA1031
                     catch (Exception e)
                     {
-                        IoService.WriteErrorLine($"Error uploading {filePath}");
+                        IoService.WriteErrorLine($"Error uploading {path}");
                         IoService.WriteLine(e.ToString());
                         
                         if (i + 1 < UploadMaxRetry)
@@ -110,7 +123,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 }
 
                 if (!uploadSucceeded)
-                    IoService.WriteErrorLine($"Can't upload \"{filePath}\" after {UploadMaxRetry} retries");
+                    IoService.WriteErrorLine($"Can't upload \"{path}\" after {UploadMaxRetry} retries");
                 else if (Options.OfferDownload)
                 {
 #pragma warning disable CA1031

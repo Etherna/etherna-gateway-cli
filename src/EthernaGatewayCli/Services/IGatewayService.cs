@@ -22,18 +22,31 @@ namespace Etherna.GatewayCli.Services
     public interface IGatewayService
     {
         Task<int> CalculatePostageBatchDepthAsync(Stream fileStream, string fileContentType, string fileName);
+        
         Task<int> CalculatePostageBatchDepthAsync(byte[] fileData, string fileContentType, string fileName);
-        Task<int> CalculatePostageBatchDepthAsync(IEnumerable<string> filePaths);
+        
+        Task<int> CalculatePostageBatchDepthAsync(IEnumerable<string> paths);
+        
         Task<PostageBatchId> CreatePostageBatchAsync(BzzBalance amount, int batchDepth, string? label);
+        
         Task FundResourceDownloadAsync(SwarmHash hash);
+        
         Task FundResourcePinningAsync(SwarmHash hash);
+        
         Task<BzzBalance> GetChainPriceAsync();
+        
         Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId);
+        
         Task<SwarmHash> UploadFileAsync(
             PostageBatchId batchId,
             Stream content,
             string? name,
             string? contentType,
+            bool pinResource);
+
+        Task<SwarmHash> UploadDirectoryAsync(
+            PostageBatchId batchId,
+            string directoryPath,
             bool pinResource);
     }
 }
