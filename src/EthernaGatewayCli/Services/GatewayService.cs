@@ -48,31 +48,40 @@ namespace Etherna.GatewayCli.Services
             .RequiredPostageBatchDepth;
 
         [SuppressMessage("Performance", "CA1851:Possible multiple enumerations of \'IEnumerable\' collection")]
-        public async Task<int> CalculatePostageBatchDepthAsync(IEnumerable<string> filePaths)
+        [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
+        public async Task<int> CalculatePostageBatchDepthAsync(IEnumerable<string> paths)
         {
-            ArgumentNullException.ThrowIfNull(filePaths, nameof(filePaths));
-            if (!filePaths.Any())
-                throw new ArgumentOutOfRangeException(nameof(filePaths), "Empty file paths");
+            ArgumentNullException.ThrowIfNull(paths, nameof(paths));
+            if (!paths.Any())
+                throw new ArgumentOutOfRangeException(nameof(paths), "Empty file paths");
             
             ioService.Write("Calculating required postage batch depth... ");
 
             var buckets = new uint[PostageBuckets.BucketsSize];
             var stampIssuer = new PostageStampIssuer(PostageBatch.MaxDepthInstance, buckets);
             UploadEvaluationResult lastResult = null!;
-            foreach (var filePath in filePaths)
+            foreach (var path in paths)
             {
-                if (!File.Exists(filePath))
-                    throw new InvalidOperationException($"File {filePath} doesn't exist");
+                if (File.Exists(path)) //is a file
+                {
+                    await using var fileStream = File.OpenRead(path);
+                    var mimeType = fileService.GetMimeType(path);
+                    var fileName = Path.GetFileName(path);
 
-                await using var fileStream = File.OpenRead(filePath);
-                var mimeType = fileService.GetMimeType(filePath);
-                var fileName = Path.GetFileName(filePath);
-
-                lastResult = await calculatorService.EvaluateFileUploadAsync(
-                    fileStream,
-                    mimeType,
-                    fileName,
-                    postageStampIssuer: stampIssuer);
+                    lastResult = await calculatorService.EvaluateFileUploadAsync(
+                        fileStream,
+                        mimeType,
+                        fileName,
+                        postageStampIssuer: stampIssuer);
+                }
+                else if (Directory.Exists(path)) //is a directory
+                {
+                    lastResult = await calculatorService.EvaluateDirectoryUploadAsync(
+                        path,
+                        postageStampIssuer: stampIssuer);
+                }
+                else //invalid path
+                    throw new InvalidOperationException($"Path {path} is not valid");
             }
 
             ioService.WriteLine("Done");
@@ -148,6 +157,16 @@ namespace Etherna.GatewayCli.Services
                 content,
                 name: name,
                 contentType: contentType,
+                swarmDeferredUpload: true,
+                swarmPin: pinResource);
+
+        public Task<SwarmHash> UploadDirectoryAsync(
+            PostageBatchId batchId,
+            string directoryPath,
+            bool pinResource) =>
+            ethernaGatewayClient.UploadDirectoryAsync(
+                batchId,
+                directoryPath,
                 swarmDeferredUpload: true,
                 swarmPin: pinResource);
 
