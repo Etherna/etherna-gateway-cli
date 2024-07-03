@@ -16,7 +16,7 @@ using Etherna.BeeNet.Models;
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
-using Etherna.Sdk.Common.GenClients.Gateway;
+using Etherna.Sdk.Gateway.GenClients;
 using System;
 using System.IO;
 using System.Reflection;

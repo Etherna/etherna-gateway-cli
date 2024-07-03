@@ -15,7 +15,7 @@
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Commands;
-using Etherna.Sdk.Users.Native;
+using Etherna.Sdk.Users;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
@@ -77,13 +77,12 @@ namespace Etherna.GatewayCli
             if (ethernaCommandOptions.ApiKey is null) //"code" grant flow
             {
                 ethernaClientsBuilder = services.AddEthernaUserClientsWithCodeAuth(
-                    CommonConsts.EthernaSsoUrl,
                     CommonConsts.EthernaGatewayCliClientId,
                     null,
                     11430,
                     ApiScopes,
-                    CommonConsts.HttpClientName,
-                    c =>
+                    httpClientName: CommonConsts.HttpClientName,
+                    configureHttpClient: c =>
                     {
                         c.Timeout = TimeSpan.FromMinutes(30);
                     });
@@ -91,16 +90,15 @@ namespace Etherna.GatewayCli
             else //"password" grant flow
             {
                 ethernaClientsBuilder = services.AddEthernaUserClientsWithApiKeyAuth(
-                    CommonConsts.EthernaSsoUrl,
                     ethernaCommandOptions.ApiKey,
                     ApiScopes,
-                    CommonConsts.HttpClientName,
-                    c =>
+                    httpClientName: CommonConsts.HttpClientName,
+                    configureHttpClient: c =>
                     {
                         c.Timeout = TimeSpan.FromMinutes(30);
                     });
             }
-            ethernaClientsBuilder.AddEthernaGatewayClient(new Uri(CommonConsts.EthernaGatewayUrl));
+            ethernaClientsBuilder.AddEthernaGatewayClient();
 
             var serviceProvider = services.BuildServiceProvider();
             

@@ -16,8 +16,8 @@ using Etherna.BeeNet.Hasher.Postage;
 using Etherna.BeeNet.Models;
 using Etherna.BeeNet.Services;
 using Etherna.CliHelper.Services;
-using Etherna.Sdk.Common.GenClients.Gateway;
-using Etherna.Sdk.Users.Clients;
+using Etherna.Sdk.Gateway.GenClients;
+using Etherna.Sdk.Users.Gateway.Clients;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -58,8 +58,7 @@ namespace Etherna.GatewayCli.Services
             
             ioService.Write("Calculating required postage batch depth... ");
 
-            var buckets = new uint[PostageBuckets.BucketsSize];
-            var stampIssuer = new PostageStampIssuer(PostageBatch.MaxDepthInstance, buckets);
+            var stampIssuer = new PostageStampIssuer(PostageBatch.MaxDepthInstance);
             UploadEvaluationResult lastResult = null!;
             foreach (var path in paths)
             {
