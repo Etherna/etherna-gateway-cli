@@ -98,7 +98,11 @@ namespace Etherna.GatewayCli
                         c.Timeout = TimeSpan.FromMinutes(30);
                     });
             }
-            ethernaClientsBuilder.AddEthernaGatewayClient();
+            if (ethernaCommandOptions.CustomGatewayUrl is null)
+                ethernaClientsBuilder.AddEthernaGatewayClient();
+            else
+                ethernaClientsBuilder.AddEthernaGatewayClient(
+                    ethernaCommandOptions.CustomGatewayUrl);
 
             var serviceProvider = services.BuildServiceProvider();
             
