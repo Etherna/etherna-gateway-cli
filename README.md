@@ -13,15 +13,19 @@ Etherna Gateway CLI requires at least [.NET 8 Runtime](https://dotnet.microsoft.
 
 ```
 etherna
-A CLI interface to the Etherna Gateway
+A CLI interface to the Etherna Gateway.
 
-Usage:  etherna [OPTIONS] COMMAND
+    Program distributed under AGPLv3 license. Copyright since 2024 by Etherna SA.
+    You can find source code at: https://github.com/Etherna/etherna-gateway-cli
+
+Usage:  etherna [ETHERNA_OPTIONS] COMMAND
 
 Commands:
+  chunk       Manage swarm chunks
   download    Download a resource from Swarm
   postage     Manage postage batches
   resource    Manage Swarm resources
-  upload      Upload a resource to Swarm
+  upload      Upload files and directories to Swarm
 
 Options:
   -k, --api-key string    Api Key (optional)
