@@ -47,12 +47,13 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             var outputDirPath = commandArgs[1];
             
             // Create chunks.
+            UploadEvaluationResult result;
             if (File.Exists(sourcePath)) //is a file
             {
                 var fileName = Path.GetFileName(sourcePath);
                 var mimeType = fileService.GetMimeType(sourcePath);
                 using var stream = File.OpenRead(sourcePath);
-                await chunkService.EvaluateSingleFileUploadAsync(
+                result = await chunkService.EvaluateSingleFileUploadAsync(
                     stream,
                     mimeType,
                     fileName,
@@ -60,7 +61,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             }
             else if (Directory.Exists(sourcePath)) //is a directory
             {
-                await chunkService.EvaluateDirectoryUploadAsync(
+                result = await chunkService.EvaluateDirectoryUploadAsync(
                     sourcePath,
                     indexFilename: null,
                     errorFilename: null,
@@ -70,6 +71,9 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             {
                 throw new FileNotFoundException("Source path does not exist");
             }
+                
+            IoService.WriteLine($"Created {result.PostageStampIssuer.Buckets.TotalChunks} chunks");
+            IoService.WriteLine($"Root hash: {result.Hash}");
         }
     }
 }
