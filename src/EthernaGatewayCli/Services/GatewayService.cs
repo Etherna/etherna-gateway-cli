@@ -134,6 +134,9 @@ namespace Etherna.GatewayCli.Services
             return batchId.Value;
         }
 
+        public Task<TagInfo> CreateTagAsync() =>
+            ethernaGatewayClient.BeeClient.CreateTagAsync();
+
         public Task FundResourceDownloadAsync(SwarmHash hash) =>
             ethernaGatewayClient.FundResourceDownloadAsync(hash);
 
@@ -145,6 +148,87 @@ namespace Etherna.GatewayCli.Services
 
         public Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId) =>
             ethernaGatewayClient.GetPostageBatchAsync(batchId);
+
+        public async Task<PostageBatchId> GetUsablePostageBatchIdAsync(
+            int requiredBatchDepth,
+            PostageBatchId? usePostageBatchId,
+            TimeSpan newPostageTtl,
+            bool newPostageAutoPurchase,
+            string? newPostageLabel)
+        {
+            if (usePostageBatchId is null)
+            {
+                //create a new postage batch
+                var chainPrice = await GetChainPriceAsync();
+                var amount = PostageBatch.CalculateAmount(chainPrice, newPostageTtl);
+                var bzzPrice = PostageBatch.CalculatePrice(amount, requiredBatchDepth);
+
+                ioService.WriteLine($"Required postage batch Depth: {requiredBatchDepth}, Amount: {amount.ToPlurString()}, BZZ price: {bzzPrice}");
+
+                if (!newPostageAutoPurchase)
+                {
+                    bool validSelection = false;
+
+                    while (validSelection == false)
+                    {
+                        ioService.WriteLine($"Confirm the batch purchase? Y to confirm, N to deny [Y|n]");
+
+                        switch (ioService.ReadKey())
+                        {
+                            case { Key: ConsoleKey.Y }:
+                            case { Key: ConsoleKey.Enter }:
+                                validSelection = true;
+                                break;
+                            case { Key: ConsoleKey.N }:
+                                throw new InvalidOperationException("Batch purchase denied");
+                            default:
+                                ioService.WriteLine("Invalid selection");
+                                break;
+                        }
+                    }
+                }
+
+                //create batch
+                var postageBatchId = await CreatePostageBatchAsync(amount, requiredBatchDepth, newPostageLabel);
+
+                ioService.WriteLine($"Created postage batch: {postageBatchId}");
+
+                return postageBatchId;
+            }
+            else
+            {
+                //get info about existing postage batch
+                PostageBatch postageBatch;
+                try
+                {
+                    postageBatch = await GetPostageBatchInfoAsync(usePostageBatchId.Value);
+                }
+                catch (EthernaGatewayApiException e) when (e.StatusCode == 404)
+                {
+                    ioService.WriteErrorLine($"Unable to find postage batch \"{usePostageBatchId}\".");
+                    throw;
+                }
+                
+                //verify if it is usable
+                if (!postageBatch.IsUsable)
+                {
+                    ioService.WriteErrorLine($"Postage batch \"{usePostageBatchId}\" is not usable.");
+                    throw new InvalidOperationException();
+                }
+                
+                Console.WriteLine("Attention! Provided postage batch will be used without requirements checks!");
+                //See: https://etherna.atlassian.net/browse/ESG-269
+                // // verify if it has available space
+                // if (gatewayService.CalculatePostageBatchByteSize(postageBatch) -
+                //     gatewayService.CalculateRequiredPostageBatchSpace(contentByteSize) < 0)
+                // {
+                //     IoService.WriteErrorLine($"Postage batch \"{Options.UsePostageBatchId}\" has not enough space.");
+                //     throw new InvalidOperationException();
+                // }
+                
+                return postageBatch.Id;
+            }
+        }
 
         public Task<SwarmHash> UploadFileAsync(
             PostageBatchId batchId,
