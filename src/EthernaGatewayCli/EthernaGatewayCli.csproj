@@ -32,8 +32,8 @@
 
   <ItemGroup>
     <PackageReference Include="Etherna.CliHelper" Version="0.1.0" />
-    <PackageReference Include="EthernaSdk.Users.Gateway" Version="0.4.0-alpha.65" />
-    <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
+    <PackageReference Include="EthernaSdk.Users.Gateway" Version="0.4.0-alpha.101" />
+    <PackageReference Include="GitVersion.MsBuild" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

@@ -27,8 +27,8 @@ namespace Etherna.GatewayCli
         {
             // Add transient services.
             services.AddTransient<IAuthenticationService, AuthenticationService>();
+            services.AddTransient<IChunkService, ChunkService>();
             services.AddTransient<IFileService, FileService>();
-            services.AddTransient<ICalculatorService, CalculatorService>();
             services.AddTransient<IGatewayService, GatewayService>();
             services.AddTransient<IIoService, ConsoleIoService>();
             

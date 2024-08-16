@@ -12,7 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Hasher.Postage;
+using Etherna.BeeNet.Hashing.Postage;
 using Etherna.BeeNet.Models;
 using Etherna.BeeNet.Services;
 using Etherna.CliHelper.Services;
@@ -28,7 +28,7 @@ using System.Threading.Tasks;
 namespace Etherna.GatewayCli.Services
 {
     public class GatewayService(
-        ICalculatorService calculatorService,
+        IChunkService chunkService,
         IEthernaUserGatewayClient ethernaGatewayClient,
         IFileService fileService,
         IIoService ioService)
@@ -41,12 +41,12 @@ namespace Etherna.GatewayCli.Services
 
         // Methods.
         public async Task<int> CalculatePostageBatchDepthAsync(Stream fileStream, string fileContentType, string fileName) =>
-            (await calculatorService.EvaluateFileUploadAsync(fileStream, fileContentType, fileName))
-            .RequiredPostageBatchDepth;
+            (await chunkService.EvaluateSingleFileUploadAsync(fileStream, fileContentType, fileName))
+            .PostageStampIssuer.Buckets.RequiredPostageBatchDepth;
 
         public async Task<int> CalculatePostageBatchDepthAsync(byte[] fileData, string fileContentType, string fileName) =>
-            (await calculatorService.EvaluateFileUploadAsync(fileData, fileContentType, fileName))
-            .RequiredPostageBatchDepth;
+            (await chunkService.EvaluateSingleFileUploadAsync(fileData, fileContentType, fileName))
+            .PostageStampIssuer.Buckets.RequiredPostageBatchDepth;
 
         [SuppressMessage("Performance", "CA1851:Possible multiple enumerations of \'IEnumerable\' collection")]
         [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
@@ -68,7 +68,7 @@ namespace Etherna.GatewayCli.Services
                     var mimeType = fileService.GetMimeType(path);
                     var fileName = Path.GetFileName(path);
 
-                    lastResult = await calculatorService.EvaluateFileUploadAsync(
+                    lastResult = await chunkService.EvaluateSingleFileUploadAsync(
                         fileStream,
                         mimeType,
                         fileName,
@@ -76,7 +76,7 @@ namespace Etherna.GatewayCli.Services
                 }
                 else if (Directory.Exists(path)) //is a directory
                 {
-                    lastResult = await calculatorService.EvaluateDirectoryUploadAsync(
+                    lastResult = await chunkService.EvaluateDirectoryUploadAsync(
                         path,
                         postageStampIssuer: stampIssuer);
                 }
@@ -86,7 +86,7 @@ namespace Etherna.GatewayCli.Services
 
             ioService.WriteLine("Done");
 
-            return lastResult.RequiredPostageBatchDepth;
+            return lastResult.PostageStampIssuer.Buckets.RequiredPostageBatchDepth;
         }
 
         public async Task<PostageBatchId> CreatePostageBatchAsync(BzzBalance amount, int batchDepth, string? label)
