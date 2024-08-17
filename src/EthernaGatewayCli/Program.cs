@@ -33,21 +33,6 @@ namespace Etherna.GatewayCli
         // Methods.
         public static async Task Main(string[] args)
         {
-            // Setup DI.
-            var services = new ServiceCollection();
-            
-            //commands
-            var availableCommandTypes = typeof(Program).GetTypeInfo().Assembly.GetTypes()
-                .Where(t => t is { IsClass: true, IsAbstract: false } &&
-                            t.Namespace?.StartsWith(CommandsNamespace) == true &&
-                            typeof(CommandBase).IsAssignableFrom(t))
-                .OrderBy(t => t.Name);
-            foreach (var commandType in availableCommandTypes)
-                services.AddTransient(commandType);
-
-            //services
-            services.AddCoreServices();
-            
             /****
              * WORKAROUND
              * See: https://etherna.atlassian.net/browse/EAUTH-21
@@ -71,6 +56,25 @@ namespace Etherna.GatewayCli
 #pragma warning restore CA1031
             /* END WORKAROUND
              ****/
+            
+            // Setup DI.
+            var services = new ServiceCollection();
+            
+            //commands
+            var availableCommandTypes = typeof(Program).GetTypeInfo().Assembly.GetTypes()
+                .Where(t => t is { IsClass: true, IsAbstract: false } &&
+                            t.Namespace?.StartsWith(CommandsNamespace) == true &&
+                            typeof(CommandBase).IsAssignableFrom(t))
+                .OrderBy(t => t.Name);
+            foreach (var commandType in availableCommandTypes)
+                services.AddTransient(commandType);
+
+            //services
+            services.AddCoreServices(
+                gatewayServiceOptions =>
+                {
+                    gatewayServiceOptions.UseBeeApi = ethernaCommandOptions.UseBeeApi;
+                });
             
             // Register etherna service clients.
             IEthernaUserClientsBuilder ethernaClientsBuilder;

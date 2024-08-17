@@ -23,6 +23,7 @@ namespace Etherna.GatewayCli.Commands
         public override IEnumerable<CommandOption> Definitions => new CommandOption[]
         {
             new("-k", "--api-key", "Api Key (optional)", args => ApiKey = args[0], [typeof(string)]),
+            new(null, "--bee", "Use bee API", _ => UseBeeApi = true),
             new(null,"--gateway-url", "Custom gateway url", args => CustomGatewayUrl = args[0], [typeof(string)]),
             new("-i", "--ignore-update", "Ignore new versions of EthernaGatewayCli", _ => IgnoreUpdate = true)
         };
@@ -31,5 +32,6 @@ namespace Etherna.GatewayCli.Commands
         public string? ApiKey { get; private set; }
         public string? CustomGatewayUrl { get; private set; }
         public bool IgnoreUpdate{ get; private set; }
+        public bool UseBeeApi { get; private set; }
     }
 }

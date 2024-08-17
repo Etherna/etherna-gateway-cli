@@ -18,7 +18,9 @@ using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using System;
 using System.IO;
+using System.Net.WebSockets;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Chunk
@@ -78,10 +80,9 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
                 Options.NewPostageAutoPurchase,
                 Options.NewPostageLabel);
 
-            // Create tag. Necessary to not bypass bee local storage.
-            var tagInfo = await gatewayService.CreateTagAsync();
-
             // Create websocket.
+            var tagInfo = await gatewayService.CreateTagAsync(); //necessary to not bypass bee local storage
+            var webSocket = await gatewayService.GetChunkUploadWebSocketAsync(postageBatchId, tagInfo.Id);
 
             // Upload.
         }

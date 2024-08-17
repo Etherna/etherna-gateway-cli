@@ -28,8 +28,10 @@ Commands:
   upload      Upload files and directories to Swarm
 
 Options:
-  -k, --api-key string    Api Key (optional)
-  -i, --ignore-update     Ignore new versions of EthernaGatewayCli
+  -k, --api-key string        Api Key (optional)
+      --bee                   Use bee API
+      --gateway-url string    Custom gateway url
+  -i, --ignore-update         Ignore new versions of EthernaGatewayCli
 
 Run 'etherna -h' or 'etherna --help' to print help.
 Run 'etherna COMMAND -h' or 'etherna COMMAND --help' for more information on a command.

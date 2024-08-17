@@ -16,6 +16,8 @@ using Etherna.BeeNet.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.WebSockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Services
@@ -37,6 +39,11 @@ namespace Etherna.GatewayCli.Services
         Task FundResourcePinningAsync(SwarmHash hash);
         
         Task<BzzBalance> GetChainPriceAsync();
+
+        Task<ClientWebSocket> GetChunkUploadWebSocketAsync(
+            PostageBatchId batchId,
+            TagId? tagId = null,
+            CancellationToken cancellationToken = default);
         
         Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId);
 

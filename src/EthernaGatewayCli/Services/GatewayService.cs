@@ -16,13 +16,17 @@ using Etherna.BeeNet.Hashing.Postage;
 using Etherna.BeeNet.Models;
 using Etherna.BeeNet.Services;
 using Etherna.CliHelper.Services;
+using Etherna.GatewayCli.Services.Options;
 using Etherna.Sdk.Gateway.GenClients;
 using Etherna.Sdk.Users.Gateway.Clients;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net.WebSockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Services
@@ -31,13 +35,17 @@ namespace Etherna.GatewayCli.Services
         IChunkService chunkService,
         IEthernaUserGatewayClient ethernaGatewayClient,
         IFileService fileService,
-        IIoService ioService)
+        IIoService ioService,
+        IOptions<GatewayServiceOptions> options)
         : IGatewayService
     {
         // Const.
         private readonly TimeSpan BatchCheckTimeSpan = new(0, 0, 0, 5);
         private readonly TimeSpan BatchCreationTimeout = new(0, 0, 10, 0);
         private readonly TimeSpan BatchUsableTimeout = new(0, 0, 10, 0);
+        
+        // Fields.
+        private readonly GatewayServiceOptions options = options.Value;
 
         // Methods.
         public async Task<int> CalculatePostageBatchDepthAsync(Stream fileStream, string fileContentType, string fileName) =>
@@ -99,33 +107,41 @@ namespace Etherna.GatewayCli.Services
             // Start creation.
             var bzzPrice = PostageBatch.CalculatePrice(amount, batchDepth);
             ioService.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount.ToPlurString()}, BZZ price: {bzzPrice}");
-            var batchReferenceId = await ethernaGatewayClient.BuyPostageBatchAsync(amount, batchDepth, label);
 
-            // Wait until created batch is available.
-            ioService.Write("Waiting for batch created... (it may take a while)");
-
-            var batchStartWait = DateTime.UtcNow;
             PostageBatchId? batchId = null;
-            do
+            if (options.UseBeeApi)
             {
-                //timeout throw exception
-                if (DateTime.UtcNow - batchStartWait >= BatchCreationTimeout)
-                {
-                    var ex = new InvalidOperationException("Batch not avaiable after timeout");
-                    ex.Data.Add("BatchReferenceId", batchReferenceId);
-                    throw ex;
-                }
+                batchId = await ethernaGatewayClient.BeeClient.BuyPostageBatchAsync(amount, batchDepth, label);
+            }
+            else
+            {
+                var batchReferenceId = await ethernaGatewayClient.BuyPostageBatchAsync(amount, batchDepth, label);
 
-                try
+                // Wait until created batch is available.
+                ioService.Write("Waiting for batch created... (it may take a while)");
+
+                var batchStartWait = DateTime.UtcNow;
+                do
                 {
-                    batchId = await ethernaGatewayClient.TryGetNewPostageBatchIdFromPostageRefAsync(batchReferenceId);
-                }
-                catch (EthernaGatewayApiException)
-                {
-                    //waiting for batchId available
-                    await Task.Delay(BatchCheckTimeSpan);
-                }
-            } while (!batchId.HasValue);
+                    //timeout throw exception
+                    if (DateTime.UtcNow - batchStartWait >= BatchCreationTimeout)
+                    {
+                        var ex = new InvalidOperationException("Batch not avaiable after timeout");
+                        ex.Data.Add("BatchReferenceId", batchReferenceId);
+                        throw ex;
+                    }
+
+                    try
+                    {
+                        batchId = await ethernaGatewayClient.TryGetNewPostageBatchIdFromPostageRefAsync(batchReferenceId);
+                    }
+                    catch (EthernaGatewayApiException)
+                    {
+                        //waiting for batchId available
+                        await Task.Delay(BatchCheckTimeSpan);
+                    }
+                } while (!batchId.HasValue);
+            }
 
             ioService.WriteLine(". Done");
 
@@ -142,12 +158,31 @@ namespace Etherna.GatewayCli.Services
 
         public Task FundResourcePinningAsync(SwarmHash hash) =>
             ethernaGatewayClient.FundResourcePinningAsync(hash);
-        
-        public async Task<BzzBalance> GetChainPriceAsync() =>
-            (await ethernaGatewayClient.GetChainStateAsync()).CurrentPrice;
 
-        public Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId) =>
-            ethernaGatewayClient.GetPostageBatchAsync(batchId);
+        public async Task<BzzBalance> GetChainPriceAsync()
+        {
+            if (options.UseBeeApi)
+                return (await ethernaGatewayClient.BeeClient.GetChainStateAsync()).CurrentPrice;
+            return (await ethernaGatewayClient.GetChainStateAsync()).CurrentPrice;
+        }
+
+        public Task<ClientWebSocket> GetChunkUploadWebSocketAsync(
+            PostageBatchId batchId,
+            TagId? tagId = null,
+            CancellationToken cancellationToken = default) =>
+            ethernaGatewayClient.BeeClient.GetChunkUploadWebSocketAsync(batchId, tagId, cancellationToken);
+
+        public Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId)
+        {
+            if (options.UseBeeApi)
+            {
+                return ethernaGatewayClient.BeeClient.GetPostageBatchAsync(batchId);
+            }
+            else
+            {
+                return ethernaGatewayClient.GetPostageBatchAsync(batchId);
+            }
+        }
 
         public async Task<PostageBatchId> GetUsablePostageBatchIdAsync(
             int requiredBatchDepth,
@@ -275,7 +310,8 @@ namespace Etherna.GatewayCli.Services
                 batchIsUsable = (await GetPostageBatchInfoAsync(batchId)).IsUsable;
 
                 //waiting for batch usable
-                await Task.Delay(BatchCheckTimeSpan);
+                if (!batchIsUsable)
+                    await Task.Delay(BatchCheckTimeSpan);
             } while (!batchIsUsable);
 
             ioService.WriteLine(". Done");
