@@ -30,7 +30,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
         IFileService fileService,
         IIoService ioService,
         IServiceProvider serviceProvider)
-        : CommandBase(assembly, ioService, serviceProvider)
+        : CommandBase<CreateCommandOptions>(assembly, ioService, serviceProvider)
     {
         public override string CommandArgsHelpString => "SOURCE OUTPUT_DIR";
         public override string Description => "Create swarm chunks from a file or directory, and save locally";
@@ -63,7 +63,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             {
                 result = await chunkService.EvaluateDirectoryUploadAsync(
                     sourcePath,
-                    indexFilename: null,
+                    indexFilename: Options.IndexFilename,
                     errorFilename: null,
                     chunkStore: new LocalDirectoryChunkStore(outputDirPath, true));
             }
