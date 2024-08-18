@@ -40,7 +40,7 @@ namespace Etherna.GatewayCli.Services
         
         Task<BzzBalance> GetChainPriceAsync();
 
-        Task<ClientWebSocket> GetChunkUploadWebSocketAsync(
+        Task<ChunkUploaderWebSocket> GetChunkUploaderWebSocketAsync(
             PostageBatchId batchId,
             TagId? tagId = null,
             CancellationToken cancellationToken = default);

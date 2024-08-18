@@ -27,6 +27,10 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
 {
     public class UploadCommand : CommandBase<UploadCommandOptions>
     {
+        // Consts.
+        private const int UploadMaxRetry = 10;
+        private readonly TimeSpan UploadRetryTimeSpan = TimeSpan.FromSeconds(5);
+        
         // Fields.
         private readonly IAuthenticationService authService;
         private readonly IGatewayService gatewayService;
@@ -72,19 +76,54 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             }
             var batchDepth = postageBuckets.RequiredPostageBatchDepth;
             
-            // Identify postage batch to use.
+            // Identify postage batch and tag to use.
             var postageBatchId = await gatewayService.GetUsablePostageBatchIdAsync(
                 batchDepth,
                 Options.UsePostageBatchId is null ? (PostageBatchId?)null : new PostageBatchId(Options.UsePostageBatchId),
                 Options.NewPostageTtl,
                 Options.NewPostageAutoPurchase,
                 Options.NewPostageLabel);
-
-            // Create websocket.
             var tagInfo = await gatewayService.CreateTagAsync(); //necessary to not bypass bee local storage
-            var webSocket = await gatewayService.GetChunkUploadWebSocketAsync(postageBatchId, tagInfo.Id);
 
-            // Upload.
+            // Upload with websocket.
+            int totalUploaded = 0;
+            for (int i = 0; i < UploadMaxRetry && totalUploaded < chunkFiles.Length; i++)
+            {
+                // Create websocket.
+                using var chunkUploaderWs = await gatewayService.GetChunkUploaderWebSocketAsync(postageBatchId, tagInfo.Id);
+
+                try
+                {
+                    for (int j = totalUploaded; j < chunkFiles.Length; j++)
+                    {
+                        var chunkPath = chunkFiles[j];
+                        var chunk = SwarmChunk.BuildFromSpanAndData(
+                            Path.GetFileNameWithoutExtension(chunkPath),
+                            await File.ReadAllBytesAsync(chunkPath));
+                        
+                        await chunkUploaderWs.SendChunkAsync(chunk, CancellationToken.None);
+
+                        totalUploaded++;
+                    }
+                }
+                catch (Exception e) when (e is WebSocketException or OperationCanceledException)
+                {
+                    IoService.WriteErrorLine($"Error uploading chunks");
+                    IoService.WriteLine(e.ToString());
+
+                    if (i + 1 < UploadMaxRetry)
+                    {
+                        Console.WriteLine("Retry...");
+                        await Task.Delay(UploadRetryTimeSpan);
+                    }
+                }
+                finally
+                {
+                    await chunkUploaderWs.CloseAsync();
+                }
+            }
+            
+            IoService.WriteLine($"Uploaded {totalUploaded} chunks successfully.");
         }
     }
 }

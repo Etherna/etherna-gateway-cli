@@ -106,7 +106,7 @@ namespace Etherna.GatewayCli.Services
             
             // Start creation.
             var bzzPrice = PostageBatch.CalculatePrice(amount, batchDepth);
-            ioService.WriteLine($"Creating postage batch... Depth: {batchDepth}, Amount: {amount.ToPlurString()}, BZZ price: {bzzPrice}");
+            ioService.WriteLine($"Creating postage batch...");
 
             PostageBatchId? batchId = null;
             if (options.UseBeeApi)
@@ -141,9 +141,9 @@ namespace Etherna.GatewayCli.Services
                         await Task.Delay(BatchCheckTimeSpan);
                     }
                 } while (!batchId.HasValue);
-            }
 
-            ioService.WriteLine(". Done");
+                ioService.WriteLine(". Done");
+            }
 
             await WaitForBatchUsableAsync(batchId.Value);
 
@@ -166,11 +166,11 @@ namespace Etherna.GatewayCli.Services
             return (await ethernaGatewayClient.GetChainStateAsync()).CurrentPrice;
         }
 
-        public Task<ClientWebSocket> GetChunkUploadWebSocketAsync(
+        public Task<ChunkUploaderWebSocket> GetChunkUploaderWebSocketAsync(
             PostageBatchId batchId,
             TagId? tagId = null,
             CancellationToken cancellationToken = default) =>
-            ethernaGatewayClient.BeeClient.GetChunkUploadWebSocketAsync(batchId, tagId, cancellationToken);
+            ethernaGatewayClient.BeeClient.GetChunkUploaderWebSocketAsync(batchId, tagId, cancellationToken);
 
         public Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId)
         {
