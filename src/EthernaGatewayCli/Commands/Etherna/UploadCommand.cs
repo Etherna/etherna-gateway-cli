@@ -16,7 +16,6 @@ using Etherna.BeeNet.Models;
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
-using Etherna.Sdk.Common.GenClients.Gateway;
 using System;
 using System.IO;
 using System.Reflection;
@@ -71,7 +70,12 @@ namespace Etherna.GatewayCli.Commands.Etherna
             var batchDepth = await gatewayService.CalculatePostageBatchDepthAsync(paths);
             
             // Identify postage batch to use.
-            var postageBatchId = await GetUsablePostageBatchIdAsync(batchDepth);
+            var postageBatchId = await gatewayService.GetUsablePostageBatchIdAsync(
+                batchDepth,
+                Options.UsePostageBatchId is null ? (PostageBatchId?)null : new PostageBatchId(Options.UsePostageBatchId),
+                Options.NewPostageTtl,
+                Options.NewPostageAutoPurchase,
+                Options.NewPostageLabel);
 
             // Upload file.
             foreach (var path in paths)
@@ -142,83 +146,6 @@ namespace Etherna.GatewayCli.Commands.Etherna
                     }
 #pragma warning restore CA1031
                 }
-            }
-        }
-
-        // Helpers.
-        private async Task<PostageBatchId> GetUsablePostageBatchIdAsync(int batchDepth)
-        {
-            if (Options.UsePostageBatchId is null)
-            {
-                //create a new postage batch
-                var chainPrice = await gatewayService.GetChainPriceAsync();
-                var amount = PostageBatch.CalculateAmount(chainPrice, Options.NewPostageTtl);
-                var bzzPrice = PostageBatch.CalculatePrice(amount, batchDepth);
-
-                IoService.WriteLine($"Required postage batch Depth: {batchDepth}, Amount: {amount.ToPlurString()}, BZZ price: {bzzPrice}");
-
-                if (!Options.NewPostageAutoPurchase)
-                {
-                    bool validSelection = false;
-
-                    while (validSelection == false)
-                    {
-                        IoService.WriteLine($"Confirm the batch purchase? Y to confirm, N to deny [Y|n]");
-
-                        switch (IoService.ReadKey())
-                        {
-                            case { Key: ConsoleKey.Y }:
-                            case { Key: ConsoleKey.Enter }:
-                                validSelection = true;
-                                break;
-                            case { Key: ConsoleKey.N }:
-                                throw new InvalidOperationException("Batch purchase denied");
-                            default:
-                                IoService.WriteLine("Invalid selection");
-                                break;
-                        }
-                    }
-                }
-
-                //create batch
-                var postageBatchId = await gatewayService.CreatePostageBatchAsync(amount, batchDepth, Options.NewPostageLabel);
-
-                IoService.WriteLine($"Created postage batch: {postageBatchId}");
-
-                return postageBatchId;
-            }
-            else
-            {
-                //get info about existing postage batch
-                PostageBatch postageBatch;
-                try
-                {
-                    postageBatch = await gatewayService.GetPostageBatchInfoAsync(Options.UsePostageBatchId);
-                }
-                catch (EthernaGatewayApiException e) when (e.StatusCode == 404)
-                {
-                    IoService.WriteErrorLine($"Unable to find postage batch \"{Options.UsePostageBatchId}\".");
-                    throw;
-                }
-                
-                //verify if it is usable
-                if (!postageBatch.IsUsable)
-                {
-                    IoService.WriteErrorLine($"Postage batch \"{Options.UsePostageBatchId}\" is not usable.");
-                    throw new InvalidOperationException();
-                }
-                
-                Console.WriteLine("Attention! Provided postage batch will be used without requirements checks!");
-                //See: https://etherna.atlassian.net/browse/ESG-269
-                // // verify if it has available space
-                // if (gatewayService.CalculatePostageBatchByteSize(postageBatch) -
-                //     gatewayService.CalculateRequiredPostageBatchSpace(contentByteSize) < 0)
-                // {
-                //     IoService.WriteErrorLine($"Postage batch \"{Options.UsePostageBatchId}\" has not enough space.");
-                //     throw new InvalidOperationException();
-                // }
-                
-                return postageBatch.Id;
             }
         }
     }

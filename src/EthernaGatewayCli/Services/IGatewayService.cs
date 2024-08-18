@@ -13,8 +13,10 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Services
@@ -28,14 +30,28 @@ namespace Etherna.GatewayCli.Services
         Task<int> CalculatePostageBatchDepthAsync(IEnumerable<string> paths);
         
         Task<PostageBatchId> CreatePostageBatchAsync(BzzBalance amount, int batchDepth, string? label);
+
+        Task<TagInfo> CreateTagAsync();
         
         Task FundResourceDownloadAsync(SwarmHash hash);
         
         Task FundResourcePinningAsync(SwarmHash hash);
         
         Task<BzzBalance> GetChainPriceAsync();
+
+        Task<ChunkUploaderWebSocket> GetChunkUploaderWebSocketAsync(
+            PostageBatchId batchId,
+            TagId? tagId = null,
+            CancellationToken cancellationToken = default);
         
         Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId);
+
+        Task<PostageBatchId> GetUsablePostageBatchIdAsync(
+            int requiredBatchDepth,
+            PostageBatchId? usePostageBatchId,
+            TimeSpan newPostageTtl,
+            bool newPostageAutoPurchase,
+            string? newPostageLabel);
         
         Task<SwarmHash> UploadFileAsync(
             PostageBatchId batchId,

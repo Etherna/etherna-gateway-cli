@@ -4,11 +4,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EthernaGatewayCli", "src\Et
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D3B7E18B-46F8-4072-9D14-801FDB15868C}"
 	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
 		nuget.config = nuget.config
 		.gitignore = .gitignore
 		.editorconfig = .editorconfig
-		COPYING = COPYING
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{6DD03B58-3404-41AD-B84D-E43E600C54F3}"

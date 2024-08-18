@@ -15,7 +15,7 @@
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
-using Etherna.Sdk.Users.Clients;
+using Etherna.Sdk.Users.Gateway.Clients;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;

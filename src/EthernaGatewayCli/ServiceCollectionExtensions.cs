@@ -15,7 +15,9 @@
 using Etherna.BeeNet.Services;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
+using Etherna.GatewayCli.Services.Options;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Reflection;
 
 namespace Etherna.GatewayCli
@@ -23,12 +25,16 @@ namespace Etherna.GatewayCli
     internal static class ServiceCollectionExtensions
     {
         public static void AddCoreServices(
-            this IServiceCollection services)
+            this IServiceCollection services,
+            Action<GatewayServiceOptions> configureGatewayOptions)
         {
+            // Configure options.
+            services.Configure(configureGatewayOptions);
+            
             // Add transient services.
             services.AddTransient<IAuthenticationService, AuthenticationService>();
+            services.AddTransient<IChunkService, ChunkService>();
             services.AddTransient<IFileService, FileService>();
-            services.AddTransient<ICalculatorService, CalculatorService>();
             services.AddTransient<IGatewayService, GatewayService>();
             services.AddTransient<IIoService, ConsoleIoService>();
             

@@ -12,13 +12,19 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.CliHelper.Models.Commands;
+using Etherna.CliHelper.Services;
 using System;
+using System.Reflection;
 
-namespace Etherna.GatewayCli
+namespace Etherna.GatewayCli.Commands.Etherna
 {
-    public static class CommonConsts
+    public class ChunkCommand(
+        Assembly assembly,
+        IIoService ioService,
+        IServiceProvider serviceProvider)
+        : CommandBase(assembly, ioService, serviceProvider)
     {
-        public const string EthernaGatewayCliClientId = "ethernaGatewayCliId";
-        public const string HttpClientName = "ethernaAuthnHttpClient";
+        public override string Description => "Manage swarm chunks";
     }
 }

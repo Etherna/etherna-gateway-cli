@@ -12,13 +12,11 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-
-namespace Etherna.GatewayCli
+namespace Etherna.GatewayCli.Services.Options
 {
-    public static class CommonConsts
+    public class GatewayServiceOptions
     {
-        public const string EthernaGatewayCliClientId = "ethernaGatewayCliId";
-        public const string HttpClientName = "ethernaAuthnHttpClient";
+        // Properties.
+        public bool UseBeeApi { get; set; }
     }
 }

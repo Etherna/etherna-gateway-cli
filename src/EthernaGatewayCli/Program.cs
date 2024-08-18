@@ -15,7 +15,7 @@
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Commands;
-using Etherna.Sdk.Users.Native;
+using Etherna.Sdk.Users;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
@@ -33,21 +33,6 @@ namespace Etherna.GatewayCli
         // Methods.
         public static async Task Main(string[] args)
         {
-            // Setup DI.
-            var services = new ServiceCollection();
-            
-            //commands
-            var availableCommandTypes = typeof(Program).GetTypeInfo().Assembly.GetTypes()
-                .Where(t => t is { IsClass: true, IsAbstract: false } &&
-                            t.Namespace?.StartsWith(CommandsNamespace) == true &&
-                            typeof(CommandBase).IsAssignableFrom(t))
-                .OrderBy(t => t.Name);
-            foreach (var commandType in availableCommandTypes)
-                services.AddTransient(commandType);
-
-            //services
-            services.AddCoreServices();
-            
             /****
              * WORKAROUND
              * See: https://etherna.atlassian.net/browse/EAUTH-21
@@ -72,18 +57,36 @@ namespace Etherna.GatewayCli
             /* END WORKAROUND
              ****/
             
+            // Setup DI.
+            var services = new ServiceCollection();
+            
+            //commands
+            var availableCommandTypes = typeof(Program).GetTypeInfo().Assembly.GetTypes()
+                .Where(t => t is { IsClass: true, IsAbstract: false } &&
+                            t.Namespace?.StartsWith(CommandsNamespace) == true &&
+                            typeof(CommandBase).IsAssignableFrom(t))
+                .OrderBy(t => t.Name);
+            foreach (var commandType in availableCommandTypes)
+                services.AddTransient(commandType);
+
+            //services
+            services.AddCoreServices(
+                gatewayServiceOptions =>
+                {
+                    gatewayServiceOptions.UseBeeApi = ethernaCommandOptions.UseBeeApi;
+                });
+            
             // Register etherna service clients.
             IEthernaUserClientsBuilder ethernaClientsBuilder;
             if (ethernaCommandOptions.ApiKey is null) //"code" grant flow
             {
                 ethernaClientsBuilder = services.AddEthernaUserClientsWithCodeAuth(
-                    CommonConsts.EthernaSsoUrl,
                     CommonConsts.EthernaGatewayCliClientId,
                     null,
                     11430,
                     ApiScopes,
-                    CommonConsts.HttpClientName,
-                    c =>
+                    httpClientName: CommonConsts.HttpClientName,
+                    configureHttpClient: c =>
                     {
                         c.Timeout = TimeSpan.FromMinutes(30);
                     });
@@ -91,16 +94,19 @@ namespace Etherna.GatewayCli
             else //"password" grant flow
             {
                 ethernaClientsBuilder = services.AddEthernaUserClientsWithApiKeyAuth(
-                    CommonConsts.EthernaSsoUrl,
                     ethernaCommandOptions.ApiKey,
                     ApiScopes,
-                    CommonConsts.HttpClientName,
-                    c =>
+                    httpClientName: CommonConsts.HttpClientName,
+                    configureHttpClient: c =>
                     {
                         c.Timeout = TimeSpan.FromMinutes(30);
                     });
             }
-            ethernaClientsBuilder.AddEthernaGatewayClient(new Uri(CommonConsts.EthernaGatewayUrl));
+            if (ethernaCommandOptions.CustomGatewayUrl is null)
+                ethernaClientsBuilder.AddEthernaGatewayClient();
+            else
+                ethernaClientsBuilder.AddEthernaGatewayClient(
+                    ethernaCommandOptions.CustomGatewayUrl);
 
             var serviceProvider = services.BuildServiceProvider();
             
