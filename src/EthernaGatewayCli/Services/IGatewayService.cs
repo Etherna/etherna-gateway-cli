@@ -31,7 +31,7 @@ namespace Etherna.GatewayCli.Services
         
         Task<PostageBatchId> CreatePostageBatchAsync(BzzBalance amount, int batchDepth, string? label);
 
-        Task<TagInfo> CreateTagAsync();
+        Task<TagInfo> CreateTagAsync(PostageBatchId postageBatchId);
         
         Task FundResourceDownloadAsync(SwarmHash hash);
         

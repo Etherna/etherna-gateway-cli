@@ -149,8 +149,8 @@ namespace Etherna.GatewayCli.Services
             return batchId.Value;
         }
 
-        public Task<TagInfo> CreateTagAsync() =>
-            ethernaGatewayClient.BeeClient.CreateTagAsync();
+        public Task<TagInfo> CreateTagAsync(PostageBatchId postageBatchId) =>
+            ethernaGatewayClient.BeeClient.CreateTagAsync(postageBatchId);
 
         public Task FundResourceDownloadAsync(SwarmHash hash) =>
             ethernaGatewayClient.FundResourceDownloadAsync(hash);
