@@ -83,7 +83,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
                 Options.NewPostageTtl,
                 Options.NewPostageAutoPurchase,
                 Options.NewPostageLabel);
-            var tagInfo = await gatewayService.CreateTagAsync(); //necessary to not bypass bee local storage
+            var tagInfo = await gatewayService.CreateTagAsync(postageBatchId); //necessary to not bypass bee local storage
 
             // Upload with websocket.
             int totalUploaded = 0;
