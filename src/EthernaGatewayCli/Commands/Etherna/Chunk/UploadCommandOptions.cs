@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Models.Commands.OptionRequirements;
 using System;
@@ -30,7 +31,8 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             new(null, "--postage", "Use an existing postage batch. Create a new otherwise", args => UsePostageBatchId = args[0], [typeof(string)]),
             new("-A", "--auto-purchase", "Auto purchase new postage batch", _ => NewPostageAutoPurchase = true),
             new("-l", "--label", "Label of new postage batch", args => NewPostageLabel = args[0], [typeof(string)]),
-            new("-t", "--ttl", $"TTL (days) of new postage batch (default: {DefaultPostageBatchTtl.Days} days)", args => NewPostageTtl = TimeSpan.FromDays(int.Parse(args[0])), [typeof(int)])
+            new("-t", "--ttl", $"TTL (days) of new postage batch (default: {DefaultPostageBatchTtl.Days} days)", args => NewPostageTtl = TimeSpan.FromDays(int.Parse(args[0])), [typeof(int)]),
+            new("-r", "--root-hash", "Specify resource root hash", args => RootHash = new SwarmHash(args[0]), [typeof(string)])
         ];
         public override IEnumerable<OptionRequirementBase> Requirements =>
         [
@@ -41,6 +43,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
         public bool NewPostageAutoPurchase { get; private set; }
         public string? NewPostageLabel { get; private set; }
         public TimeSpan NewPostageTtl { get; private set; } = DefaultPostageBatchTtl;
+        public SwarmHash? RootHash { get; private set; }
         public string? UsePostageBatchId { get; private set; }
     }
 }

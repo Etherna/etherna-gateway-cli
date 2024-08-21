@@ -23,6 +23,8 @@ namespace Etherna.GatewayCli.Services
 {
     public interface IGatewayService
     {
+        Task AnnounceUploadAsync(SwarmHash hash, PostageBatchId batchId);
+        
         Task<int> CalculatePostageBatchDepthAsync(Stream fileStream, string fileContentType, string fileName);
         
         Task<int> CalculatePostageBatchDepthAsync(byte[] fileData, string fileContentType, string fileName);

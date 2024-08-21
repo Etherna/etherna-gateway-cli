@@ -18,6 +18,7 @@ using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Reflection;
 using System.Threading;
@@ -76,6 +77,14 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             }
             var batchDepth = postageBuckets.RequiredPostageBatchDepth;
             
+            // Check root hash if present.
+            if (Options.RootHash.HasValue)
+            {
+                var rootHashStr = Options.RootHash.ToString();
+                if (chunkFiles.All(cf => Path.GetFileNameWithoutExtension(cf) != rootHashStr))
+                    throw new InvalidOperationException("Root hash is not present in chunk files");
+            }
+            
             // Identify postage batch and tag to use.
             var postageBatchId = await gatewayService.GetUsablePostageBatchIdAsync(
                 batchDepth,
@@ -86,6 +95,9 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             var tagInfo = await gatewayService.CreateTagAsync(postageBatchId); //necessary to not bypass bee local storage
 
             // Upload with websocket.
+            if (Options.RootHash.HasValue)
+                await gatewayService.AnnounceUploadAsync(Options.RootHash.Value, postageBatchId);
+            
             int totalUploaded = 0;
             for (int i = 0; i < UploadMaxRetry && totalUploaded < chunkFiles.Length; i++)
             {
