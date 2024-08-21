@@ -47,6 +47,11 @@ namespace Etherna.GatewayCli.Services
         private readonly GatewayServiceOptions options = options.Value;
 
         // Methods.
+        public Task AnnounceUploadAsync(SwarmHash hash, PostageBatchId batchId) =>
+            options.UseBeeApi ?
+                Task.CompletedTask :
+                ethernaGatewayClient.AnnounceUploadAsync(hash, batchId);
+        
         public async Task<int> CalculatePostageBatchDepthAsync(Stream fileStream, string fileContentType, string fileName) =>
             (await chunkService.EvaluateSingleFileUploadAsync(fileStream, fileContentType, fileName))
             .PostageStampIssuer.Buckets.RequiredPostageBatchDepth;
