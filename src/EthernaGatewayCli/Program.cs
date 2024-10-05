@@ -85,6 +85,11 @@ namespace Etherna.GatewayCli
                     null,
                     11430,
                     ApiScopes,
+#if DEVENV
+                    authority: "https://localhost:44379/",
+#else
+                    authority: EthernaUserClientsBuilder.DefaultSsoUrl,
+#endif
                     httpClientName: CommonConsts.HttpClientName,
                     configureHttpClient: c =>
                     {
@@ -96,17 +101,24 @@ namespace Etherna.GatewayCli
                 ethernaClientsBuilder = services.AddEthernaUserClientsWithApiKeyAuth(
                     ethernaCommandOptions.ApiKey,
                     ApiScopes,
+#if DEVENV
+                    authority: "https://localhost:44379/",
+#else
+                    authority: EthernaUserClientsBuilder.DefaultSsoUrl,
+#endif
                     httpClientName: CommonConsts.HttpClientName,
                     configureHttpClient: c =>
                     {
                         c.Timeout = TimeSpan.FromMinutes(30);
                     });
             }
-            if (ethernaCommandOptions.CustomGatewayUrl is null)
-                ethernaClientsBuilder.AddEthernaGatewayClient();
-            else
-                ethernaClientsBuilder.AddEthernaGatewayClient(
-                    ethernaCommandOptions.CustomGatewayUrl);
+            ethernaClientsBuilder.AddEthernaGatewayClient(
+#if DEVENV
+                    gatewayBaseUrl: ethernaCommandOptions.CustomGatewayUrl ?? "http://localhost:1633/"
+#else
+                    gatewayBaseUrl: ethernaCommandOptions.CustomGatewayUrl ?? EthernaUserClientsBuilder.DefaultGatewayUrl
+#endif
+                    );
 
             var serviceProvider = services.BuildServiceProvider();
             

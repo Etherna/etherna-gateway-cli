@@ -29,7 +29,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
     public class UploadCommand : CommandBase<UploadCommandOptions>
     {
         // Consts.
-        private ushort ChunkBatchMaxSize = ushort.MaxValue;
+        private ushort ChunkBatchMaxSize = 1000;
         private const int UploadMaxRetry = 10;
         private readonly TimeSpan UploadRetryTimeSpan = TimeSpan.FromSeconds(5);
         
@@ -114,7 +114,6 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
                     while(totalUploaded < chunkFiles.Length)
                     {
                         var chunkBatchFiles = chunkFiles.Skip(totalUploaded).Take(ChunkBatchMaxSize).ToArray();
-                        var batchSize = chunkBatchFiles.Length;
                         
                         List<SwarmChunk> chunkBatch = [];
                         foreach (var chunkFile in chunkBatchFiles)
@@ -124,7 +123,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
                         
                         await chunkUploaderWs.SendChunksAsync(chunkBatch.ToArray());
 
-                        totalUploaded += batchSize;
+                        totalUploaded += chunkBatchFiles.Length;
                         
                         IoService.WriteLine($"Uploaded {totalUploaded} chunks of {chunkFiles.Length}...");
                     }
