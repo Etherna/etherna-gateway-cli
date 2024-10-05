@@ -17,11 +17,11 @@ using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Chunk
@@ -29,6 +29,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
     public class UploadCommand : CommandBase<UploadCommandOptions>
     {
         // Consts.
+        private ushort ChunkBatchMaxSize = ushort.MaxValue;
         private const int UploadMaxRetry = 10;
         private readonly TimeSpan UploadRetryTimeSpan = TimeSpan.FromSeconds(5);
         
@@ -102,20 +103,30 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             for (int i = 0; i < UploadMaxRetry && totalUploaded < chunkFiles.Length; i++)
             {
                 // Create websocket.
-                using var chunkUploaderWs = await gatewayService.GetChunkUploaderWebSocketAsync(postageBatchId, tagInfo.Id);
+                using var chunkUploaderWs = await gatewayService.GetChunkUploaderWebSocketAsync(
+                    postageBatchId,
+                    ChunkBatchMaxSize,
+                    tagInfo.Id);
 
                 try
                 {
-                    for (int j = totalUploaded; j < chunkFiles.Length; j++)
+                    // Iterate on chunk batches.
+                    while(totalUploaded < chunkFiles.Length)
                     {
-                        var chunkPath = chunkFiles[j];
-                        var chunk = SwarmChunk.BuildFromSpanAndData(
-                            Path.GetFileNameWithoutExtension(chunkPath),
-                            await File.ReadAllBytesAsync(chunkPath));
+                        var chunkBatchFiles = chunkFiles.Skip(totalUploaded).Take(ChunkBatchMaxSize).ToArray();
+                        var batchSize = chunkBatchFiles.Length;
                         
-                        await chunkUploaderWs.SendChunkAsync(chunk, CancellationToken.None);
+                        List<SwarmChunk> chunkBatch = [];
+                        foreach (var chunkFile in chunkBatchFiles)
+                            chunkBatch.Add(SwarmChunk.BuildFromSpanAndData(
+                                Path.GetFileNameWithoutExtension(chunkFile),
+                                await File.ReadAllBytesAsync(chunkFile)));
+                        
+                        await chunkUploaderWs.SendChunksAsync(chunkBatch.ToArray());
 
-                        totalUploaded++;
+                        totalUploaded += batchSize;
+                        
+                        IoService.WriteLine($"Uploaded {totalUploaded} chunks of {chunkFiles.Length}...");
                     }
                 }
                 catch (Exception e) when (e is WebSocketException or OperationCanceledException)

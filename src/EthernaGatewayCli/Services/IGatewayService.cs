@@ -43,6 +43,7 @@ namespace Etherna.GatewayCli.Services
 
         Task<ChunkUploaderWebSocket> GetChunkUploaderWebSocketAsync(
             PostageBatchId batchId,
+            ushort chunkBatchMaxSize,
             TagId? tagId = null,
             CancellationToken cancellationToken = default);
         

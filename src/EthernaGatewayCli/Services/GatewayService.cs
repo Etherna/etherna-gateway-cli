@@ -50,7 +50,7 @@ namespace Etherna.GatewayCli.Services
         public Task AnnounceUploadAsync(SwarmHash hash, PostageBatchId batchId) =>
             options.UseBeeApi ?
                 Task.CompletedTask :
-                ethernaGatewayClient.AnnounceUploadAsync(hash, batchId);
+                ethernaGatewayClient.AnnounceChunksUploadAsync(hash, batchId);
         
         public async Task<int> CalculatePostageBatchDepthAsync(Stream fileStream, string fileContentType, string fileName) =>
             (await chunkService.EvaluateSingleFileUploadAsync(fileStream, fileContentType, fileName))
@@ -170,22 +170,22 @@ namespace Etherna.GatewayCli.Services
             return (await ethernaGatewayClient.GetChainStateAsync()).CurrentPrice;
         }
 
-        public Task<ChunkUploaderWebSocket> GetChunkUploaderWebSocketAsync(
+        public async Task<ChunkUploaderWebSocket> GetChunkUploaderWebSocketAsync(
             PostageBatchId batchId,
+            ushort chunkBatchMaxSize,
             TagId? tagId = null,
-            CancellationToken cancellationToken = default) =>
-            ethernaGatewayClient.BeeClient.GetChunkUploaderWebSocketAsync(batchId, tagId, cancellationToken);
+            CancellationToken cancellationToken = default)
+        {
+            if (options.UseBeeApi)
+                return await ethernaGatewayClient.BeeClient.GetChunkUploaderWebSocketAsync(batchId, tagId, cancellationToken);
+            return await ethernaGatewayClient.GetChunkTurboUploaderWebSocketAsync(batchId, tagId, chunkBatchMaxSize, cancellationToken);
+        }
 
         public Task<PostageBatch> GetPostageBatchInfoAsync(PostageBatchId batchId)
         {
             if (options.UseBeeApi)
-            {
                 return ethernaGatewayClient.BeeClient.GetPostageBatchAsync(batchId);
-            }
-            else
-            {
-                return ethernaGatewayClient.GetPostageBatchAsync(batchId);
-            }
+            return ethernaGatewayClient.GetPostageBatchAsync(batchId);
         }
 
         public async Task<PostageBatchId> GetUsablePostageBatchIdAsync(
