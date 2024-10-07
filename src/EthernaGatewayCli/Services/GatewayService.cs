@@ -15,6 +15,7 @@
 using Etherna.BeeNet.Hashing.Postage;
 using Etherna.BeeNet.Models;
 using Etherna.BeeNet.Services;
+using Etherna.BeeNet.Tools;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services.Options;
 using Etherna.Sdk.Gateway.GenClients;
@@ -170,7 +171,7 @@ namespace Etherna.GatewayCli.Services
             return (await ethernaGatewayClient.GetChainStateAsync()).CurrentPrice;
         }
 
-        public async Task<ChunkUploaderWebSocket> GetChunkUploaderWebSocketAsync(
+        public async Task<IChunkWebSocketUploader> GetChunkUploaderWebSocketAsync(
             PostageBatchId batchId,
             ushort chunkBatchMaxSize,
             TagId? tagId = null,

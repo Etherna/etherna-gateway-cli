@@ -121,7 +121,9 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
                                 Path.GetFileNameWithoutExtension(chunkFile),
                                 await File.ReadAllBytesAsync(chunkFile)));
                         
-                        await chunkUploaderWs.SendChunksAsync(chunkBatch.ToArray());
+                        await chunkUploaderWs.SendChunkBatchAsync(
+                            chunkBatch.ToArray(),
+                            totalUploaded + chunkBatchFiles.Length == chunkFiles.Length);
 
                         totalUploaded += chunkBatchFiles.Length;
                         

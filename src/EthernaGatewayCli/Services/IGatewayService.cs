@@ -13,6 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
+using Etherna.BeeNet.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,7 +42,7 @@ namespace Etherna.GatewayCli.Services
         
         Task<BzzBalance> GetChainPriceAsync();
 
-        Task<ChunkUploaderWebSocket> GetChunkUploaderWebSocketAsync(
+        Task<IChunkWebSocketUploader> GetChunkUploaderWebSocketAsync(
             PostageBatchId batchId,
             ushort chunkBatchMaxSize,
             TagId? tagId = null,
