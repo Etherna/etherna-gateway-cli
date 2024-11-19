@@ -15,7 +15,8 @@
 using Etherna.BeeNet.Services;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
-using Etherna.GatewayCli.Services.Options;
+using Etherna.Sdk.Users.Gateway.Options;
+using Etherna.Sdk.Users.Gateway.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Reflection;
@@ -37,6 +38,7 @@ namespace Etherna.GatewayCli
             services.AddTransient<IFileService, FileService>();
             services.AddTransient<IGatewayService, GatewayService>();
             services.AddTransient<IIoService, ConsoleIoService>();
+            services.AddTransient<IPostageBatchService, PostageBatchService>();
             
             // Add singleton services.
             services.AddSingleton(typeof(Program).GetTypeInfo().Assembly);

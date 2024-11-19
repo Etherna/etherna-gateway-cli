@@ -15,31 +15,21 @@
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
+using Etherna.Sdk.Users.Gateway.Services;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Resource
 {
-    public class FundCommand : CommandBase<FundCommandOptions>
+    public class FundCommand(
+        Assembly assembly,
+        IAuthenticationService authService,
+        IGatewayService gatewayService,
+        IIoService ioService,
+        IServiceProvider serviceProvider)
+        : CommandBase<FundCommandOptions>(assembly, ioService, serviceProvider)
     {
-        // Fields.
-        private readonly IAuthenticationService authService;
-        private readonly IGatewayService gatewayService;
-
-        // Constructor.
-        public FundCommand(
-            Assembly assembly,
-            IAuthenticationService authService,
-            IGatewayService gatewayService,
-            IIoService ioService,
-            IServiceProvider serviceProvider)
-            : base(assembly, ioService, serviceProvider)
-        {
-            this.authService = authService;
-            this.gatewayService = gatewayService;
-        }
-
         // Properties.
         public override string CommandArgsHelpString => "RESOURCE_ID";
         public override string Description => "Fund resource budget";
