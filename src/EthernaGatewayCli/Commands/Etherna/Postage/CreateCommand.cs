@@ -16,31 +16,21 @@ using Etherna.BeeNet.Models;
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
+using Etherna.Sdk.Users.Gateway.Services;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Postage
 {
-    public class CreateCommand : CommandBase<CreateCommandOptions>
+    public class CreateCommand(
+        Assembly assembly,
+        IAuthenticationService authService,
+        IGatewayService gatewayService,
+        IIoService ioService,
+        IServiceProvider serviceProvider)
+        : CommandBase<CreateCommandOptions>(assembly, ioService, serviceProvider)
     {
-        // Fields.
-        private readonly IAuthenticationService authService;
-        private readonly IGatewayService gatewayService;
-
-        // Constructor.
-        public CreateCommand(
-            Assembly assembly,
-            IAuthenticationService authService,
-            IGatewayService gatewayService,
-            IIoService ioService,
-            IServiceProvider serviceProvider)
-            : base(assembly, ioService, serviceProvider)
-        {
-            this.authService = authService;
-            this.gatewayService = gatewayService;
-        }
-
         // Properties.
         public override string Description => "Create a new postage batch";
         
@@ -66,7 +56,14 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
             }
             else throw new InvalidOperationException("Amount or TTL are required");
             
-            var batchId = await gatewayService.CreatePostageBatchAsync(amount, Options.Depth, Options.Label);
+            var batchId = await gatewayService.CreatePostageBatchAsync(
+                amount,
+                Options.Depth,
+                Options.Label,
+                onWaitingBatchCreation: () => IoService.Write("Waiting for batch created... (it may take a while)"),
+                onBatchCreated: _ => IoService.WriteLine(". Done"),
+                onWaitingBatchUsable: () => IoService.Write("Waiting for batch being usable... (it may take a while)"),
+                onBatchUsable: () => IoService.WriteLine(". Done"));
             
             // Print result.
             IoService.WriteLine();

@@ -16,6 +16,7 @@ using Etherna.BeeNet.Models;
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
+using Etherna.Sdk.Users.Gateway.Services;
 using System;
 using System.IO;
 using System.Reflection;
@@ -23,32 +24,20 @@ using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna
 {
-    public class UploadCommand : CommandBase<UploadCommandOptions>
+    public class UploadCommand(
+        Assembly assembly,
+        IAuthenticationService authService,
+        IFileService fileService,
+        IGatewayService gatewayService,
+        IIoService ioService,
+        IPostageBatchService postageBatchService,
+        IServiceProvider serviceProvider)
+        : CommandBase<UploadCommandOptions>(assembly, ioService, serviceProvider)
     {
         // Consts.
         private const int UploadMaxRetry = 10;
         private readonly TimeSpan UploadRetryTimeSpan = TimeSpan.FromSeconds(5);
-        
-        // Fields.
-        private readonly IAuthenticationService authService;
-        private readonly IFileService fileService;
-        private readonly IGatewayService gatewayService;
 
-        // Constructor.
-        public UploadCommand(
-            Assembly assembly,
-            IAuthenticationService authService,
-            IFileService fileService,
-            IGatewayService gatewayService,
-            IIoService ioService,
-            IServiceProvider serviceProvider)
-            : base(assembly, ioService, serviceProvider)
-        {
-            this.authService = authService;
-            this.fileService = fileService;
-            this.gatewayService = gatewayService;
-        }
-        
         // Properties.
         public override string CommandArgsHelpString => "SOURCE [SOURCE ...]";
         public override string Description => "Upload files and directories to Swarm";
@@ -67,14 +56,14 @@ namespace Etherna.GatewayCli.Commands.Etherna
             await authService.SignInAsync();
             
             // Search files and calculate required postage batch depth.
-            var batchDepth = await gatewayService.CalculatePostageBatchDepthAsync(paths);
+            var batchDepth = await postageBatchService.CalculatePostageBatchDepthAsync(paths);
             
             // Identify postage batch to use.
-            var postageBatchId = await gatewayService.GetUsablePostageBatchIdAsync(
+            var postageBatchId = await postageBatchService.GetUsablePostageBatchAsync(
                 batchDepth,
-                Options.UsePostageBatchId is null ? (PostageBatchId?)null : new PostageBatchId(Options.UsePostageBatchId),
                 Options.NewPostageTtl,
                 Options.NewPostageAutoPurchase,
+                Options.UsePostageBatchId is null ? (PostageBatchId?)null : new PostageBatchId(Options.UsePostageBatchId),
                 Options.NewPostageLabel);
 
             // Upload file.

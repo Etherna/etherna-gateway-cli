@@ -12,11 +12,21 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-namespace Etherna.GatewayCli.Services.Options
+using Etherna.BeeNet.Models;
+using System;
+using System.Threading.Tasks;
+
+namespace Etherna.GatewayCli.Services
 {
-    public class GatewayServiceOptions
+    public interface IPostageBatchService
     {
-        // Properties.
-        public bool UseBeeApi { get; set; }
+        Task<int> CalculatePostageBatchDepthAsync(string[] paths);
+        
+        Task<PostageBatchId> GetUsablePostageBatchAsync(
+            int minBatchDepth,
+            TimeSpan minBatchTtl,
+            bool autoPurchaseNewBatch,
+            PostageBatchId? useBatchId,
+            string? newBatchLabel);
     }
 }
