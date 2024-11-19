@@ -18,6 +18,7 @@ using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Gateway.GenClients;
+using Etherna.Sdk.Users.Gateway.Services;
 using System;
 using System.Reflection;
 using System.Text.Json;
@@ -25,7 +26,13 @@ using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Postage
 {
-    public class InfoCommand : CommandBase
+    public class InfoCommand(
+        Assembly assembly,
+        IAuthenticationService authService,
+        IGatewayService gatewayService,
+        IIoService ioService,
+        IServiceProvider serviceProvider)
+        : CommandBase(assembly, ioService, serviceProvider)
     {
         // Consts.
         private static readonly JsonSerializerOptions SerializerOptions = new()
@@ -38,23 +45,6 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
             },
             WriteIndented = true
         };
-        
-        // Fields.
-        private readonly IAuthenticationService authService;
-        private readonly IGatewayService gatewayService;
-
-        // Constructor.
-        public InfoCommand(
-            Assembly assembly,
-            IAuthenticationService authService,
-            IGatewayService gatewayService,
-            IIoService ioService,
-            IServiceProvider serviceProvider)
-            : base(assembly, ioService, serviceProvider)
-        {
-            this.authService = authService;
-            this.gatewayService = gatewayService;
-        }
 
         // Properties.
         public override string Description => "Get info about a postage batch";
