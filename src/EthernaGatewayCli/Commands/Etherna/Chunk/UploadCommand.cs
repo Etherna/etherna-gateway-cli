@@ -72,14 +72,6 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             }
             var batchDepth = postageBuckets.RequiredPostageBatchDepth;
             
-            // Check root hash if present.
-            if (Options.RootHash.HasValue)
-            {
-                var rootHashStr = Options.RootHash.ToString();
-                if (chunkFiles.All(cf => Path.GetFileNameWithoutExtension(cf) != rootHashStr))
-                    throw new InvalidOperationException("Root hash is not present in chunk files");
-            }
-            
             // Identify postage batch and tag to use.
             var batchId = await postageBatchService.GetUsablePostageBatchAsync(
                 batchDepth,
