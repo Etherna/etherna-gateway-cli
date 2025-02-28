@@ -17,7 +17,7 @@ using System.Collections.Generic;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Chunk
 {
-    public class CreateCommandOptions : CommandOptionsBase
+    internal sealed class CreateCommandOptions : CommandOptionsBase
     {
         // Definitions.
         public override IEnumerable<CommandOption> Definitions =>

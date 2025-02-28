@@ -14,25 +14,25 @@
 
 using Etherna.BeeNet.JsonConverters;
 using Etherna.BeeNet.Models;
+using Etherna.CliHelper.Models;
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Gateway.GenClients;
 using Etherna.Sdk.Users.Gateway.Services;
 using System;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Postage
 {
-    public class InfoCommand(
-        Assembly assembly,
+    internal sealed class InfoCommand(
         IAuthenticationService authService,
+        CommandsRegistry commandsRegistry,
         IGatewayService gatewayService,
         IIoService ioService,
         IServiceProvider serviceProvider)
-        : CommandBase(assembly, ioService, serviceProvider)
+        : CommandBase(commandsRegistry, ioService, serviceProvider)
     {
         // Consts.
         private static readonly JsonSerializerOptions SerializerOptions = new()

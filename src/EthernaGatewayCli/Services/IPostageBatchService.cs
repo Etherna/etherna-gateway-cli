@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Services
 {
-    public interface IPostageBatchService
+    internal interface IPostageBatchService
     {
         Task<int> CalculatePostageBatchDepthAsync(string[] paths);
         

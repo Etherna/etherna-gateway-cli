@@ -12,24 +12,20 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.CliHelper.Models;
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Resource
 {
-    public class ListCommand : CommandBase
+    internal sealed class ListCommand(
+        CommandsRegistry commandsRegistry,
+        IIoService ioService,
+        IServiceProvider serviceProvider)
+        : CommandBase(commandsRegistry, ioService, serviceProvider)
     {
-        public ListCommand(
-            Assembly assembly,
-            IIoService ioService,
-            IServiceProvider serviceProvider)
-            : base(assembly, ioService, serviceProvider)
-        {
-        }
-
         public override string Description => "List resources";
 
         protected override Task ExecuteAsync(string[] commandArgs)

@@ -12,25 +12,25 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Hashing.Store;
 using Etherna.BeeNet.Services;
+using Etherna.BeeNet.Stores;
+using Etherna.CliHelper.Models;
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using System;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Chunk
 {
-    public class CreateCommand(
-        Assembly assembly,
+    internal sealed class CreateCommand(
         IChunkService chunkService,
+        CommandsRegistry commandsRegistry,
         IFileService fileService,
         IIoService ioService,
         IServiceProvider serviceProvider)
-        : CommandBase<CreateCommandOptions>(assembly, ioService, serviceProvider)
+        : CommandBase<CreateCommandOptions>(commandsRegistry, ioService, serviceProvider)
     {
         public override string CommandArgsHelpString => "SOURCE OUTPUT_DIR";
         public override string Description => "Create swarm chunks from a file or directory, and save locally";
@@ -53,7 +53,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
                 var fileName = Path.GetFileName(sourcePath);
                 var mimeType = fileService.GetMimeType(sourcePath);
                 using var stream = File.OpenRead(sourcePath);
-                result = await chunkService.EvaluateSingleFileUploadAsync(
+                result = await chunkService.UploadSingleFileAsync(
                     stream,
                     mimeType,
                     fileName,
@@ -61,7 +61,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             }
             else if (Directory.Exists(sourcePath)) //is a directory
             {
-                result = await chunkService.EvaluateDirectoryUploadAsync(
+                result = await chunkService.UploadDirectoryAsync(
                     sourcePath,
                     indexFilename: Options.IndexFilename,
                     errorFilename: null,
@@ -73,7 +73,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             }
                 
             IoService.WriteLine($"Created {result.PostageStampIssuer.Buckets.TotalChunks} chunks");
-            IoService.WriteLine($"Root hash: {result.Hash}");
+            IoService.WriteLine($"Root hash: {result.ChunkReference.Hash}");
         }
     }
 }

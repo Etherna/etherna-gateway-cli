@@ -17,16 +17,16 @@ using System.Collections.Generic;
 
 namespace Etherna.GatewayCli.Commands
 {
-    public class EthernaCommandOptions : CommandOptionsBase
+    internal sealed class EthernaCommandOptions : CommandOptionsBase
     {
         // Definitions.
-        public override IEnumerable<CommandOption> Definitions => new CommandOption[]
-        {
+        public override IEnumerable<CommandOption> Definitions =>
+        [
             new("-k", "--api-key", "Api Key (optional)", args => ApiKey = args[0], [typeof(string)]),
             new(null, "--bee", "Use bee API", _ => UseBeeApi = true),
             new(null,"--gateway-url", "Custom gateway url", args => CustomGatewayUrl = args[0], [typeof(string)]),
             new("-i", "--ignore-update", "Ignore new versions of EthernaGatewayCli", _ => IgnoreUpdate = true)
-        };
+        ];
         
         // Options.
         public string? ApiKey { get; private set; }

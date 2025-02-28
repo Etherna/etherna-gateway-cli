@@ -19,25 +19,25 @@ using System.Collections.Generic;
 
 namespace Etherna.GatewayCli.Commands.Etherna
 {
-    public class UploadCommandOptions : CommandOptionsBase
+    internal sealed class UploadCommandOptions : CommandOptionsBase
     {
         // Consts.
         private static readonly TimeSpan DefaultPostageBatchTtl = TimeSpan.FromDays(365);
 
         // Definitions.
-        public override IEnumerable<CommandOption> Definitions => new CommandOption[]
-        {
+        public override IEnumerable<CommandOption> Definitions =>
+        [
             new(null, "--postage", "Use an existing postage batch. Create a new otherwise", args => UsePostageBatchId = args[0], [typeof(string)]),
             new("-A", "--auto-purchase", "Auto purchase new postage batch", _ => NewPostageAutoPurchase = true),
             new("-l", "--label", "Label of new postage batch", args => NewPostageLabel = args[0], [typeof(string)]),
             new("-t", "--ttl", $"TTL (days) of new postage batch (default: {DefaultPostageBatchTtl.Days} days)", args => NewPostageTtl = TimeSpan.FromDays(int.Parse(args[0])), [typeof(int)]),
             new("-f", "--fund-traffic", "Fund resource traffic to everyone", _ => OfferDownload = true),
             new(null, "--no-pin", "Don't pin resource (pinning enabled by default)", _ => PinResource = false)
-        };
-        public override IEnumerable<OptionRequirementBase> Requirements => new OptionRequirementBase[]
-        {
+        ];
+        public override IEnumerable<OptionRequirementBase> Requirements =>
+        [
             new IfPresentThenOptionRequirement("--postage", new ForbiddenOptionRequirement("--auto-purchase", "--label", "--ttl"))
-        };
+        ];
 
         // Options.
         public bool OfferDownload { get; private set; }

@@ -18,16 +18,16 @@ using System.Linq;
 
 namespace Etherna.GatewayCli.Services
 {
-    public class FileService : IFileService
+    internal sealed class FileService : IFileService
     {
         // Consts.
         const string DefaultContentType = "application/octet-stream";
 
         // Fields.
         private readonly FileExtensionContentTypeProvider extensionMimeTypeProvider = new();
-        private readonly ContentInspector contentMimeTypeProvider = new ContentInspectorBuilder
+        private readonly IContentInspector contentMimeTypeProvider = new ContentInspectorBuilder
         {
-            Definitions = MimeDetective.Definitions.Default.All()
+            Definitions = MimeDetective.Definitions.DefaultDefinitions.All()
         }.Build();
 
         // Methods.

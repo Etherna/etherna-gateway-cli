@@ -18,18 +18,18 @@ using System.Collections.Generic;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Resource
 {
-    public class DefundCommandOptions : CommandOptionsBase
+    internal sealed class DefundCommandOptions : CommandOptionsBase
     {
-        public override IEnumerable<CommandOption> Definitions => new[]
-        {
-            new CommandOption("-p", "--pin", "Defund resource pinning on gateway", _ => DefundPinning = true),
-            new CommandOption("-t", "--traffic", "Defund resource traffic to everyone", _ => DefundTraffic = true)
-        };
+        public override IEnumerable<CommandOption> Definitions =>
+        [
+            new("-p", "--pin", "Defund resource pinning on gateway", _ => DefundPinning = true),
+            new("-t", "--traffic", "Defund resource traffic to everyone", _ => DefundTraffic = true)
+        ];
 
-        public override IEnumerable<OptionRequirementBase> Requirements => new[]
-        {
+        public override IEnumerable<OptionRequirementBase> Requirements =>
+        [
             new RequireOneOfOptionRequirement("-p", "-t")
-        };
+        ];
 
         public bool DefundPinning { get; set; }
         public bool DefundTraffic { get; private set; }

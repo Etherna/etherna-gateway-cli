@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Services
 {
-    public interface IAuthenticationService
+    internal interface IAuthenticationService
     {
         Task SignInAsync();
     }

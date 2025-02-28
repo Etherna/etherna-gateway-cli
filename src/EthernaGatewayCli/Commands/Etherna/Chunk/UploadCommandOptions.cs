@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Models;
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Models.Commands.OptionRequirements;
 using System;
@@ -20,7 +19,7 @@ using System.Collections.Generic;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Chunk
 {
-    public class UploadCommandOptions : CommandOptionsBase
+    internal sealed class UploadCommandOptions : CommandOptionsBase
     {
         // Consts.
         private static readonly TimeSpan DefaultPostageBatchTtl = TimeSpan.FromDays(365);

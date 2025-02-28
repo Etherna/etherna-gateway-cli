@@ -21,24 +21,12 @@ using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Services
 {
-    public class AuthenticationService : IAuthenticationService
+    internal sealed class AuthenticationService(
+        IEthernaOpenIdConnectClient ethernaOpenIdConnectClient,
+        IEthernaSignInService ethernaSignInService,
+        IIoService ioService)
+        : IAuthenticationService
     {
-        // Fields.
-        private readonly IEthernaOpenIdConnectClient ethernaOpenIdConnectClient;
-        private readonly IEthernaSignInService ethernaSignInService;
-        private readonly IIoService ioService;
-
-        // Constructor.
-        public AuthenticationService(
-            IEthernaOpenIdConnectClient ethernaOpenIdConnectClient,
-            IEthernaSignInService ethernaSignInService,
-            IIoService ioService)
-        {
-            this.ethernaOpenIdConnectClient = ethernaOpenIdConnectClient;
-            this.ethernaSignInService = ethernaSignInService;
-            this.ioService = ioService;
-        }
-        
         // Methods.
         public async Task SignInAsync()
         {

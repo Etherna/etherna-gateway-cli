@@ -13,13 +13,13 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Services;
+using Etherna.CliHelper.Models;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Users.Gateway.Options;
 using Etherna.Sdk.Users.Gateway.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Reflection;
 
 namespace Etherna.GatewayCli
 {
@@ -41,7 +41,22 @@ namespace Etherna.GatewayCli
             services.AddTransient<IPostageBatchService, PostageBatchService>();
             
             // Add singleton services.
-            services.AddSingleton(typeof(Program).GetTypeInfo().Assembly);
+            var commandsRegistry = new CommandsRegistry();
+            commandsRegistry
+                .AddCommand<Commands.EthernaCommand>(subCommands => subCommands
+                    .AddCommand<Commands.Etherna.ChunkCommand>(subCommands => subCommands
+                        .AddCommand<Commands.Etherna.Chunk.CreateCommand>()
+                        .AddCommand<Commands.Etherna.Chunk.UploadCommand>())
+                    .AddCommand<Commands.Etherna.DownloadCommand>()
+                    .AddCommand<Commands.Etherna.PostageCommand>(subCommands => subCommands
+                        .AddCommand<Commands.Etherna.Postage.CreateCommand>()
+                        .AddCommand<Commands.Etherna.Postage.InfoCommand>())
+                    .AddCommand<Commands.Etherna.ResourceCommand>(subCommands => subCommands
+                        .AddCommand<Commands.Etherna.Resource.DefundCommand>()
+                        .AddCommand<Commands.Etherna.Resource.FundCommand>()
+                        .AddCommand<Commands.Etherna.Resource.ListCommand>())
+                    .AddCommand<Commands.Etherna.UploadCommand>());
+            services.AddSingleton(commandsRegistry);
         }
     }
 }

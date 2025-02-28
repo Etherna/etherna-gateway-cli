@@ -12,23 +12,23 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.CliHelper.Models;
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Users.Gateway.Services;
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Resource
 {
-    public class FundCommand(
-        Assembly assembly,
+    internal sealed class FundCommand(
+        CommandsRegistry commandsRegistry,
         IAuthenticationService authService,
         IGatewayService gatewayService,
         IIoService ioService,
         IServiceProvider serviceProvider)
-        : CommandBase<FundCommandOptions>(assembly, ioService, serviceProvider)
+        : CommandBase<FundCommandOptions>(commandsRegistry, ioService, serviceProvider)
     {
         // Properties.
         public override string CommandArgsHelpString => "RESOURCE_ID";

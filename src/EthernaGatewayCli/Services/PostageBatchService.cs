@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Services
 {
-    public class PostageBatchService(
+    internal sealed class PostageBatchService(
         IChunkService chunkService,
         IFileService fileService,
         IGatewayService gatewayService,
@@ -49,7 +49,7 @@ namespace Etherna.GatewayCli.Services
                     var mimeType = fileService.GetMimeType(path);
                     var fileName = Path.GetFileName(path);
 
-                    lastResult = await chunkService.EvaluateSingleFileUploadAsync(
+                    lastResult = await chunkService.UploadSingleFileAsync(
                         fileStream,
                         mimeType,
                         fileName,
@@ -57,7 +57,7 @@ namespace Etherna.GatewayCli.Services
                 }
                 else if (Directory.Exists(path)) //is a directory
                 {
-                    lastResult = await chunkService.EvaluateDirectoryUploadAsync(
+                    lastResult = await chunkService.UploadDirectoryAsync(
                         path,
                         postageStampIssuer: stampIssuer);
                 }

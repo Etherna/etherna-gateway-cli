@@ -18,18 +18,18 @@ using System.Collections.Generic;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Resource
 {
-    public class FundCommandOptions : CommandOptionsBase
+    internal sealed class FundCommandOptions : CommandOptionsBase
     {
-        public override IEnumerable<CommandOption> Definitions => new[]
-        {
-            new CommandOption("-p", "--pin", "Fund resource pinning on gateway", _ => FundPinning = true),
-            new CommandOption("-t", "--traffic", "Fund resource traffic to everyone", _ => FundTraffic = true)
-        };
+        public override IEnumerable<CommandOption> Definitions =>
+        [
+            new("-p", "--pin", "Fund resource pinning on gateway", _ => FundPinning = true),
+            new("-t", "--traffic", "Fund resource traffic to everyone", _ => FundTraffic = true)
+        ];
 
-        public override IEnumerable<OptionRequirementBase> Requirements => new[]
-        {
+        public override IEnumerable<OptionRequirementBase> Requirements =>
+        [
             new RequireOneOfOptionRequirement("-p", "-t")
-        };
+        ];
 
         public bool FundPinning { get; set; }
         public bool FundTraffic { get; private set; }

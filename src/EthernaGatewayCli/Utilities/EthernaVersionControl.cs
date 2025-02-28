@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Utilities
 {
-    public static class EthernaVersionControl
+    internal static class EthernaVersionControl
     {
         // Fields.
         private static Version? _currentVersion;

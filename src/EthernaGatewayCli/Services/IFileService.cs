@@ -14,7 +14,7 @@
 
 namespace Etherna.GatewayCli.Services
 {
-    public interface IFileService
+    internal interface IFileService
     {
         string GetMimeType(string filePath);
 

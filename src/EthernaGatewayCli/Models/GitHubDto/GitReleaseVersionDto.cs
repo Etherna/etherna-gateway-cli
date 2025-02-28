@@ -16,7 +16,7 @@ using System;
 
 namespace Etherna.GatewayCli.Models.GitHubDto
 {
-    public class GitReleaseVersionDto
+    internal sealed class GitReleaseVersionDto
     {
         // Properties.
         public string Assets_url { get; set; } = default!;

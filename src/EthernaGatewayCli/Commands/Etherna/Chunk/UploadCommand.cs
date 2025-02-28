@@ -13,6 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
+using Etherna.CliHelper.Models;
 using Etherna.CliHelper.Models.Commands;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Services;
@@ -24,20 +25,19 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.WebSockets;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Chunk
 {
-    public class UploadCommand(
-        Assembly assembly,
+    internal sealed class UploadCommand(
         IAuthenticationService authService,
+        CommandsRegistry commandsRegistry,
         IGatewayService gatewayService,
         IIoService ioService,
         IPostageBatchService postageBatchService,
         IServiceProvider serviceProvider)
-        : CommandBase<UploadCommandOptions>(assembly, ioService, serviceProvider)
+        : CommandBase<UploadCommandOptions>(commandsRegistry, ioService, serviceProvider)
     {
         // Consts.
         private ushort ChunkBatchMaxSize = 500;

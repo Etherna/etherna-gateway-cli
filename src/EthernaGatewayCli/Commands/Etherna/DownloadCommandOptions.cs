@@ -18,14 +18,14 @@ using System.Collections.Generic;
 
 namespace Etherna.GatewayCli.Commands.Etherna
 {
-    public class DownloadCommandOptions : CommandOptionsBase
+    internal sealed class DownloadCommandOptions : CommandOptionsBase
     {
         // Definitions.
-        public override IEnumerable<CommandOption> Definitions => new CommandOption[]
-        {
+        public override IEnumerable<CommandOption> Definitions =>
+        [
             new("-a", "--anon", "Download resource anonymously", _ => RunAnonymously = true),
-            new("-o", "--output", "Resource output path. Default: current directory", args => OutputPath = args[0], new[] { typeof(string) })
-        };
+            new("-o", "--output", "Resource output path. Default: current directory", args => OutputPath = args[0], [typeof(string)])
+        ];
         
         // Options.
         public string OutputPath { get; private set; } = Environment.CurrentDirectory;
