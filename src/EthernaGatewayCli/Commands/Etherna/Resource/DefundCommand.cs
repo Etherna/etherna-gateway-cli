@@ -12,19 +12,16 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.CliHelper.Models;
-using Etherna.CliHelper.Models.Commands;
-using Etherna.CliHelper.Services;
+using Etherna.CliHelper.Commands;
+using Etherna.CliHelper.Commands.Models;
 using System;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands.Etherna.Resource
 {
     internal sealed class DefundCommand(
-        CommandsRegistry commandsRegistry,
-        IIoService ioService,
-        IServiceProvider serviceProvider)
-        : CommandBase<DefundCommandOptions>(commandsRegistry, ioService, serviceProvider)
+        CommandManager commandManager)
+        : CommandBase<DefundCommandOptions>(commandManager)
     {
         public override string CommandArgsHelpString => "RESOURCE_ID";
         public override string Description => "Defund resource budget";

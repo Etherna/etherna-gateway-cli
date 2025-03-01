@@ -12,14 +12,12 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.CliHelper.Models.Commands;
+using Etherna.CliHelper;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Commands;
 using Etherna.Sdk.Users;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli
@@ -28,7 +26,6 @@ namespace Etherna.GatewayCli
     {
         // Consts.
         private static readonly string[] ApiScopes = ["userApi.gateway"];
-        private const string CommandsNamespace = "Etherna.GatewayCli.Commands";
         
         // Methods.
         public static async Task Main(string[] args)
@@ -59,15 +56,6 @@ namespace Etherna.GatewayCli
             
             // Setup DI.
             var services = new ServiceCollection();
-            
-            //commands
-            var availableCommandTypes = typeof(Program).GetTypeInfo().Assembly.GetTypes()
-                .Where(t => t is { IsClass: true, IsAbstract: false } &&
-                            t.Namespace?.StartsWith(CommandsNamespace) == true &&
-                            typeof(CommandBase).IsAssignableFrom(t))
-                .OrderBy(t => t.Name);
-            foreach (var commandType in availableCommandTypes)
-                services.AddTransient(commandType);
 
             //services
             services.AddCoreServices(
@@ -75,6 +63,20 @@ namespace Etherna.GatewayCli
                 {
                     gatewayServiceOptions.UseBeeApi = ethernaCommandOptions.UseBeeApi;
                 });
+            services.AddCliHelper<ConsoleIoService>()
+                .AddCommand<Commands.EthernaCommand>(subCommands => subCommands
+                    .AddCommand<Commands.Etherna.ChunkCommand>(subCommands => subCommands
+                        .AddCommand<Commands.Etherna.Chunk.CreateCommand>()
+                        .AddCommand<Commands.Etherna.Chunk.UploadCommand>())
+                    .AddCommand<Commands.Etherna.DownloadCommand>()
+                    .AddCommand<Commands.Etherna.PostageCommand>(subCommands => subCommands
+                        .AddCommand<Commands.Etherna.Postage.CreateCommand>()
+                        .AddCommand<Commands.Etherna.Postage.InfoCommand>())
+                    .AddCommand<Commands.Etherna.ResourceCommand>(subCommands => subCommands
+                        .AddCommand<Commands.Etherna.Resource.DefundCommand>()
+                        .AddCommand<Commands.Etherna.Resource.FundCommand>()
+                        .AddCommand<Commands.Etherna.Resource.ListCommand>())
+                    .AddCommand<Commands.Etherna.UploadCommand>());
             
             // Register etherna service clients.
             IEthernaUserClientsBuilder ethernaClientsBuilder;

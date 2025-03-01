@@ -14,9 +14,8 @@
 
 using Etherna.BeeNet.Services;
 using Etherna.BeeNet.Stores;
-using Etherna.CliHelper.Models;
-using Etherna.CliHelper.Models.Commands;
-using Etherna.CliHelper.Services;
+using Etherna.CliHelper.Commands;
+using Etherna.CliHelper.Commands.Models;
 using Etherna.GatewayCli.Services;
 using System;
 using System.IO;
@@ -26,11 +25,9 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
 {
     internal sealed class CreateCommand(
         IChunkService chunkService,
-        CommandsRegistry commandsRegistry,
-        IFileService fileService,
-        IIoService ioService,
-        IServiceProvider serviceProvider)
-        : CommandBase<CreateCommandOptions>(commandsRegistry, ioService, serviceProvider)
+        CommandManager commandManager,
+        IFileService fileService)
+        : CommandBase<CreateCommandOptions>(commandManager)
     {
         public override string CommandArgsHelpString => "SOURCE OUTPUT_DIR";
         public override string Description => "Create swarm chunks from a file or directory, and save locally";

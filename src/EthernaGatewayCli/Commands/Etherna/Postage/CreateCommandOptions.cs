@@ -13,8 +13,8 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
-using Etherna.CliHelper.Models.Commands;
-using Etherna.CliHelper.Models.Commands.OptionRequirements;
+using Etherna.CliHelper.Commands.Models;
+using Etherna.CliHelper.Commands.Models.OptionRequirements;
 using System;
 using System.Collections.Generic;
 
