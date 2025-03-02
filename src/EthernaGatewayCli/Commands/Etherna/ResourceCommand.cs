@@ -12,14 +12,11 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.CliHelper.Commands;
 using Etherna.CliHelper.Commands.Models;
 
 namespace Etherna.GatewayCli.Commands.Etherna
 {
-    internal sealed class ResourceCommand(
-        CommandManager commandManager)
-        : CommandBase(commandManager)
+    internal sealed class ResourceCommand : CommandBase
     {
         // Properties.
         public override string Description => "Manage Swarm resources";

@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.CliHelper.Commands;
 using Etherna.CliHelper.Commands.Models;
 using Etherna.GatewayCli.Utilities;
 using System;
@@ -20,9 +19,7 @@ using System.Threading.Tasks;
 
 namespace Etherna.GatewayCli.Commands
 {
-    internal sealed class EthernaCommand(
-        CommandManager commandManager)
-        : CommandBase<EthernaCommandOptions>(commandManager)
+    internal sealed class EthernaCommand : CommandBase<EthernaCommandOptions>
     {
         // Properties.
         public override string Description => 

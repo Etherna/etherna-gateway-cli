@@ -13,7 +13,6 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
-using Etherna.CliHelper.Commands;
 using Etherna.CliHelper.Commands.Models;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Users.Gateway.Services;
@@ -25,11 +24,10 @@ namespace Etherna.GatewayCli.Commands.Etherna
 {
     internal sealed class UploadCommand(
         IAuthenticationService authService,
-        CommandManager commandManager,
         IFileService fileService,
         IGatewayService gatewayService,
         IPostageBatchService postageBatchService)
-        : CommandBase<UploadCommandOptions>(commandManager)
+        : CommandBase<UploadCommandOptions>
     {
         // Consts.
         private const int UploadMaxRetry = 10;

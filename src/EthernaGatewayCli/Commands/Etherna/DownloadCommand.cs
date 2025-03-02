@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.CliHelper.Commands;
 using Etherna.CliHelper.Commands.Models;
 using Etherna.GatewayCli.Services;
 using System;
@@ -21,9 +20,8 @@ using System.Threading.Tasks;
 namespace Etherna.GatewayCli.Commands.Etherna
 {
     internal sealed class DownloadCommand(
-        IAuthenticationService authService,
-        CommandManager commandManager)
-        : CommandBase<DownloadCommandOptions>(commandManager)
+        IAuthenticationService authService)
+        : CommandBase<DownloadCommandOptions>
     {
         // Properties.
         public override string CommandArgsHelpString => "RESOURCE";

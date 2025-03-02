@@ -13,7 +13,6 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
-using Etherna.CliHelper.Commands;
 using Etherna.CliHelper.Commands.Models;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Users.Gateway.Services;
@@ -24,9 +23,8 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
 {
     internal sealed class CreateCommand(
         IAuthenticationService authService,
-        CommandManager commandManager,
         IGatewayService gatewayService)
-        : CommandBase<CreateCommandOptions>(commandManager)
+        : CommandBase<CreateCommandOptions>
     {
         // Properties.
         public override string Description => "Create a new postage batch";

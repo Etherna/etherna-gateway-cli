@@ -14,7 +14,6 @@
 
 using Etherna.BeeNet.JsonConverters;
 using Etherna.BeeNet.Models;
-using Etherna.CliHelper.Commands;
 using Etherna.CliHelper.Commands.Models;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Gateway.GenClients;
@@ -27,9 +26,8 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
 {
     internal sealed class InfoCommand(
         IAuthenticationService authService,
-        CommandManager commandManager,
         IGatewayService gatewayService)
-        : CommandBase(commandManager)
+        : CommandBase
     {
         // Consts.
         private static readonly JsonSerializerOptions SerializerOptions = new()
