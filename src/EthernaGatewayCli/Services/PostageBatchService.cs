@@ -13,8 +13,10 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Hashing.Postage;
+using Etherna.BeeNet.Hashing.Signer;
 using Etherna.BeeNet.Models;
 using Etherna.BeeNet.Services;
+using Etherna.BeeNet.Stores;
 using Etherna.CliHelper.Services;
 using Etherna.Sdk.Gateway.GenClients;
 using Etherna.Sdk.Users.Gateway.Services;
@@ -39,7 +41,10 @@ namespace Etherna.GatewayCli.Services
             
             ioService.Write("Calculating required postage batch depth... ");
 
-            var stampIssuer = new PostageStampIssuer(PostageBatch.MaxDepthInstance);
+            var postageStamper = new PostageStamper(
+                new FakeSigner(),
+                new PostageStampIssuer(PostageBatch.MaxDepthInstance),
+                new MemoryStampStore());
             UploadEvaluationResult lastResult = null!;
             foreach (var path in paths)
             {
@@ -53,13 +58,13 @@ namespace Etherna.GatewayCli.Services
                         fileStream,
                         mimeType,
                         fileName,
-                        postageStampIssuer: stampIssuer);
+                        postageStamper: postageStamper);
                 }
                 else if (Directory.Exists(path)) //is a directory
                 {
                     lastResult = await chunkService.UploadDirectoryAsync(
                         path,
-                        postageStampIssuer: stampIssuer);
+                        postageStamper: postageStamper);
                 }
                 else //invalid path
                     throw new InvalidOperationException($"Path {path} is not valid");
