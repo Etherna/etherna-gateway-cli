@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Hashing;
 using Etherna.BeeNet.Services;
 using Etherna.BeeNet.Stores;
 using Etherna.CliHelper.Commands.Models;
@@ -52,12 +53,14 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
                     stream,
                     mimeType,
                     fileName,
+                    new Hasher(),
                     chunkStore: new LocalDirectoryChunkStore(outputDirPath, true));
             }
             else if (Directory.Exists(sourcePath)) //is a directory
             {
                 result = await chunkService.UploadDirectoryAsync(
                     sourcePath,
+                    new Hasher(),
                     indexFilename: Options.IndexFilename,
                     errorFilename: null,
                     chunkStore: new LocalDirectoryChunkStore(outputDirPath, true));

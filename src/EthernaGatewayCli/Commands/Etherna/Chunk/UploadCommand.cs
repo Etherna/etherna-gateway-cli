@@ -103,7 +103,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
                         
                         List<SwarmChunk> chunkBatch = [];
                         foreach (var chunkFile in chunkBatchFiles)
-                            chunkBatch.Add(SwarmChunk.BuildFromSpanAndData(
+                            chunkBatch.Add(new SwarmCac(
                                 Path.GetFileNameWithoutExtension(chunkFile),
                                 await File.ReadAllBytesAsync(chunkFile)));
                         

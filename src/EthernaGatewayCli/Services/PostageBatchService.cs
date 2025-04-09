@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Hashing;
 using Etherna.BeeNet.Hashing.Postage;
 using Etherna.BeeNet.Hashing.Signer;
 using Etherna.BeeNet.Models;
@@ -58,12 +59,14 @@ namespace Etherna.GatewayCli.Services
                         fileStream,
                         mimeType,
                         fileName,
+                        new Hasher(),
                         postageStamper: postageStamper);
                 }
                 else if (Directory.Exists(path)) //is a directory
                 {
                     lastResult = await chunkService.UploadDirectoryAsync(
                         path,
+                        new Hasher(),
                         postageStamper: postageStamper);
                 }
                 else //invalid path
