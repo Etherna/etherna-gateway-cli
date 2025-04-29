@@ -38,9 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Etherna.CliHelper" Version="0.2.0-alpha.6" />
-    <PackageReference Include="EthernaSdk.Users.Gateway" Version="0.4.0-alpha.180" />
-    <PackageReference Include="GitVersion.MsBuild" Version="6.2.0">
+    <PackageReference Include="Etherna.CliHelper" Version="0.2.0-alpha.7" />
+    <PackageReference Include="EthernaSdk.Users.Gateway" Version="0.4.0-alpha.182" />
+    <PackageReference Include="GitVersion.MsBuild" Version="6.3.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -48,7 +48,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Mime-Detective" Version="24.12.2" />
+    <PackageReference Include="Mime-Detective" Version="25.4.25" />
   </ItemGroup>
 
   <ItemGroup>

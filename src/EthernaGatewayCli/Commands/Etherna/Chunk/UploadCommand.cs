@@ -13,6 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
+using Etherna.BeeNet.Stores;
 using Etherna.CliHelper.Commands.Models;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Users.Gateway.Services;
@@ -35,7 +36,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
         : CommandBase<UploadCommandOptions>
     {
         // Consts.
-        private ushort ChunkBatchMaxSize = 500;
+        private ushort ChunkBatchMaxSize = 25000;
         private const int UploadMaxRetry = 10;
         private readonly TimeSpan UploadRetryTimeSpan = TimeSpan.FromSeconds(5);
 
@@ -57,7 +58,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             await authService.SignInAsync();
             
             // Search chunks and calculate required postage batch depth.
-            var chunkFiles = Directory.GetFiles(dirPath, "*.chunk", SearchOption.TopDirectoryOnly);
+            var chunkFiles = Directory.GetFiles(dirPath, '*' + LocalDirectoryChunkStore.CacFileExtension, SearchOption.TopDirectoryOnly);
             using var postageBuckets = new PostageBuckets();
             foreach (var chunkPath in chunkFiles)
             {

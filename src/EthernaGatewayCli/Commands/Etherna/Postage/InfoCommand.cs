@@ -34,9 +34,9 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         {
             Converters =
             {
-                new BzzBalanceJsonConverter(),
+                new BzzBalanceJsonConverter(true),
                 new PostageBatchIdJsonConverter(),
-                new XDaiBalanceJsonConverter()
+                new XDaiBalanceJsonConverter(true)
             },
             WriteIndented = true
         };
