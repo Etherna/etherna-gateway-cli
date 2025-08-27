@@ -67,7 +67,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                 IoService.WriteLine($"Uploading {path}...");
                 
                 var uploadSucceeded = false;
-                SwarmHash hash = default!;
+                SwarmReference reference = default!;
                 for (int i = 0; i < UploadMaxRetry && !uploadSucceeded; i++)
                 {
                     try
@@ -77,7 +77,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                             await using var fileStream = File.OpenRead(path);
                             var mimeType = fileService.GetMimeType(path);
                         
-                            hash = await gatewayService.UploadFileAsync(
+                            reference = await gatewayService.UploadFileAsync(
                                 postageBatchId,
                                 fileStream,
                                 Path.GetFileName(path),
@@ -86,7 +86,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                         }
                         else if (Directory.Exists(path)) //is a directory
                         {
-                            hash = await gatewayService.UploadDirectoryAsync(
+                            reference = await gatewayService.UploadDirectoryAsync(
                                 postageBatchId,
                                 path,
                                 Options.PinResource);
@@ -94,7 +94,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                         else //invalid path
                             throw new InvalidOperationException($"Path {path} is not valid");
                         
-                        IoService.WriteLine($"Hash: {hash}");
+                        IoService.WriteLine($"Reference: {reference}");
                         
                         uploadSucceeded = true;
                     }
@@ -120,7 +120,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
 #pragma warning disable CA1031
                     try
                     {
-                        await gatewayService.FundResourceDownloadAsync(hash);
+                        await gatewayService.FundResourceDownloadAsync(reference.Hash);
                         IoService.WriteLine($"Resource traffic funded");
                     }
                     catch (Exception e)

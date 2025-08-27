@@ -42,7 +42,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
             await authService.SignInAsync();
             
             // Create postage.
-            BzzBalance amount;
+            BzzValue amount;
             if (Options.Amount.HasValue) amount = Options.Amount.Value;
             else if (Options.Ttl.HasValue)
             {

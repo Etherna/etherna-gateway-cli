@@ -25,7 +25,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         // Definitions.
         public override IEnumerable<CommandOption> Definitions =>
         [
-            new("-a", "--amount", "Specify the amount to use", args => Amount = BzzBalance.FromPlurString(args[0]), [typeof(long)]),
+            new("-a", "--amount", "Specify the amount to use", args => Amount = BzzValue.FromPlurString(args[0]), [typeof(long)]),
             new("-d", "--depth", "Specify the postage batch depth", args => Depth = int.Parse(args[0]), [typeof(int)]), 
             new("-l", "--label", "Set a custom postage batch label", args => Label = args[0], [typeof(string)]),
             new("-t", "--ttl", "Specify the time to live to obtain in days", args => Ttl = TimeSpan.FromDays(int.Parse(args[0])), [typeof(int)])
@@ -40,7 +40,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         ];
 
         // Options.
-        public BzzBalance? Amount { get; private set; }
+        public BzzValue? Amount { get; private set; }
         public int Depth { get; private set; }
         public string? Label { get; private set; }
         public TimeSpan? Ttl { get; private set; }

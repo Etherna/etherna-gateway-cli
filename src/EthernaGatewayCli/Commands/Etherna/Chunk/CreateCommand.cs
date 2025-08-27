@@ -71,7 +71,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
             }
                 
             IoService.WriteLine($"Created {result.PostageStampIssuer.Buckets.TotalChunks} chunks");
-            IoService.WriteLine($"Root hash: {result.ChunkReference.Hash}");
+            IoService.WriteLine($"Root reference: {result.Reference}");
         }
     }
 }
