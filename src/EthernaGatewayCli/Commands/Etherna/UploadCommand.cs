@@ -78,18 +78,18 @@ namespace Etherna.GatewayCli.Commands.Etherna
                             var mimeType = fileService.GetMimeType(path);
                         
                             reference = await gatewayService.UploadFileAsync(
-                                postageBatchId,
                                 fileStream,
-                                Path.GetFileName(path),
-                                mimeType,
-                                Options.PinResource);
+                                postageBatchId,
+                                name: Path.GetFileName(path),
+                                contentType: mimeType,
+                                swarmPin: Options.PinResource);
                         }
                         else if (Directory.Exists(path)) //is a directory
                         {
                             reference = await gatewayService.UploadDirectoryAsync(
-                                postageBatchId,
                                 path,
-                                Options.PinResource);
+                                postageBatchId,
+                                swarmPin: Options.PinResource);
                         }
                         else //invalid path
                             throw new InvalidOperationException($"Path {path} is not valid");

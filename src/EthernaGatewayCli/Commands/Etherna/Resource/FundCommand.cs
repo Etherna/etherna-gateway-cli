@@ -49,7 +49,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Resource
 #pragma warning disable CA1031
                 try
                 {
-                    await gatewayService.FundResourcePinningAsync(resourceHash);
+                    await gatewayService.CreatePinAsync(resourceHash);
                     IoService.WriteLine($"Resource pinning funded");
                 }
                 catch (Exception e)

@@ -88,8 +88,8 @@ namespace Etherna.GatewayCli.Services
             if (useBatchId is null)
             {
                 //create a new postage batch
-                var chainPrice = await gatewayService.GetChainPriceAsync();
-                var amount = PostageBatch.CalculateAmount(chainPrice, minBatchTtl);
+                var chainState = await gatewayService.GetChainStateAsync();
+                var amount = PostageBatch.CalculateAmount(chainState.CurrentPrice, minBatchTtl);
                 var bzzPrice = PostageBatch.CalculatePrice(amount, minBatchDepth);
 
                 ioService.WriteLine($"Required postage batch Depth: {minBatchDepth}, Amount: {amount.ToPlurString()}, BZZ price: {bzzPrice}");
@@ -117,7 +117,7 @@ namespace Etherna.GatewayCli.Services
                 }
 
                 //create batch
-                var batchId = await gatewayService.CreatePostageBatchAsync(
+                var (batchId, _) = await gatewayService.BuyPostageBatchAsync(
                     amount,
                     minBatchDepth,
                     newBatchLabel,
@@ -136,7 +136,7 @@ namespace Etherna.GatewayCli.Services
                 PostageBatch postageBatch;
                 try
                 {
-                    postageBatch = await gatewayService.GetPostageBatchInfoAsync(useBatchId.Value);
+                    postageBatch = await gatewayService.GetPostageBatchAsync(useBatchId.Value);
                 }
                 catch (EthernaGatewayApiException e) when (e.StatusCode == 404)
                 {

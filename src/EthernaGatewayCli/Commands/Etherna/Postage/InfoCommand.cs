@@ -34,9 +34,9 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         {
             Converters =
             {
-                new BzzBalanceJsonConverter(true),
+                new BzzValueJsonConverter(true),
                 new PostageBatchIdJsonConverter(),
-                new XDaiBalanceJsonConverter(true)
+                new XDaiValueJsonConverter(true)
             },
             WriteIndented = true
         };
@@ -61,7 +61,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
             PostageBatch? postageBatch = null;
             try
             {
-                postageBatch = await gatewayService.GetPostageBatchInfoAsync(commandArgs[0]);
+                postageBatch = await gatewayService.GetPostageBatchAsync(commandArgs[0]);
             }
             catch (EthernaGatewayApiException e) when (e.StatusCode == 404)
             { }

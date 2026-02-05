@@ -58,11 +58,7 @@ namespace Etherna.GatewayCli
             var services = new ServiceCollection();
 
             //services
-            services.AddCoreServices(
-                gatewayServiceOptions =>
-                {
-                    gatewayServiceOptions.UseBeeApi = ethernaCommandOptions.UseBeeApi;
-                });
+            services.AddCoreServices();
             services.AddCliHelper<ConsoleIoService>()
                 .AddCommand<Commands.EthernaCommand>(subCommands => subCommands
                     .AddCommand<Commands.Etherna.ChunkCommand>(subCommands => subCommands

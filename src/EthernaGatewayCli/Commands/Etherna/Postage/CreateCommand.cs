@@ -46,12 +46,12 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
             if (Options.Amount.HasValue) amount = Options.Amount.Value;
             else if (Options.Ttl.HasValue)
             {
-                var chainPrice = await gatewayService.GetChainPriceAsync();
-                amount = PostageBatch.CalculateAmount(chainPrice, Options.Ttl.Value);
+                var chainState = await gatewayService.GetChainStateAsync();
+                amount = PostageBatch.CalculateAmount(chainState.CurrentPrice, Options.Ttl.Value);
             }
             else throw new InvalidOperationException("Amount or TTL are required");
             
-            var batchId = await gatewayService.CreatePostageBatchAsync(
+            var batchId = await gatewayService.BuyPostageBatchAsync(
                 amount,
                 Options.Depth,
                 Options.Label,

@@ -14,22 +14,16 @@
 
 using Etherna.BeeNet.Services;
 using Etherna.GatewayCli.Services;
-using Etherna.Sdk.Users.Gateway.Options;
 using Etherna.Sdk.Users.Gateway.Services;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace Etherna.GatewayCli
 {
     internal static class ServiceCollectionExtensions
     {
         public static void AddCoreServices(
-            this IServiceCollection services,
-            Action<GatewayServiceOptions> configureGatewayOptions)
+            this IServiceCollection services)
         {
-            // Configure options.
-            services.Configure(configureGatewayOptions);
-            
             // Add transient services.
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<IChunkService, ChunkService>();
