@@ -29,6 +29,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
         [
             new(null, "--postage", "Use an existing postage batch. Create a new otherwise", args => UsePostageBatchId = args[0], [typeof(string)]),
             new("-A", "--auto-purchase", "Auto purchase new postage batch", _ => NewPostageAutoPurchase = true),
+            new("-c", "--compact-level", "Chunks compact level", args => CompactLevel = ushort.Parse(args[0]), [typeof(ushort)]),
             new("-l", "--label", "Label of new postage batch", args => NewPostageLabel = args[0], [typeof(string)]),
             new("-t", "--ttl", $"TTL (days) of new postage batch (default: {DefaultPostageBatchTtl.Days} days)", args => NewPostageTtl = TimeSpan.FromDays(int.Parse(args[0])), [typeof(int)]),
             new("-f", "--fund-traffic", "Fund resource traffic to everyone", _ => OfferDownload = true),
@@ -40,10 +41,11 @@ namespace Etherna.GatewayCli.Commands.Etherna
         ];
 
         // Options.
-        public bool OfferDownload { get; private set; }
+        public ushort CompactLevel { get; private set; }
         public bool NewPostageAutoPurchase { get; private set; }
         public string? NewPostageLabel { get; private set; }
         public TimeSpan NewPostageTtl { get; private set; } = DefaultPostageBatchTtl;
+        public bool OfferDownload { get; private set; }
         public bool PinResource { get; private set; } = true;
         public string? UsePostageBatchId { get; private set; }
     }

@@ -40,7 +40,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
         // Methods.
         protected override async Task ExecuteAsync(string[] commandArgs)
         {
-            ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
+            ArgumentNullException.ThrowIfNull(commandArgs);
 
             // Parse args.
             if (commandArgs.Length < 1)
@@ -51,7 +51,9 @@ namespace Etherna.GatewayCli.Commands.Etherna
             await authService.SignInAsync();
             
             // Search files and calculate required postage batch depth.
-            var batchDepth = await postageBatchService.CalculatePostageBatchDepthAsync(paths);
+            var batchDepth = await postageBatchService.CalculatePostageBatchDepthAsync(
+                paths,
+                Options.CompactLevel);
             
             // Identify postage batch to use.
             var postageBatchId = await postageBatchService.GetUsablePostageBatchAsync(
@@ -80,6 +82,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                             reference = await gatewayService.UploadFileAsync(
                                 fileStream,
                                 postageBatchId,
+                                compactLevel: Options.CompactLevel,
                                 name: Path.GetFileName(path),
                                 contentType: mimeType,
                                 swarmPin: Options.PinResource);
@@ -89,6 +92,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                             reference = await gatewayService.UploadDirectoryAsync(
                                 path,
                                 postageBatchId,
+                                compactLevel: Options.CompactLevel,
                                 swarmPin: Options.PinResource);
                         }
                         else //invalid path

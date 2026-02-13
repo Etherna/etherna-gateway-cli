@@ -20,7 +20,9 @@ namespace Etherna.GatewayCli.Services
 {
     internal interface IPostageBatchService
     {
-        Task<int> CalculatePostageBatchDepthAsync(string[] paths);
+        Task<int> CalculatePostageBatchDepthAsync(
+            string[] paths,
+            ushort compactLevel);
         
         Task<PostageBatchId> GetUsablePostageBatchAsync(
             int minBatchDepth,

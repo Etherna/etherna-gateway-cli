@@ -34,9 +34,11 @@ namespace Etherna.GatewayCli.Services
         IIoService ioService)
         : IPostageBatchService
     {
-        public async Task<int> CalculatePostageBatchDepthAsync(string[] paths)
+        public async Task<int> CalculatePostageBatchDepthAsync(
+            string[] paths,
+            ushort compactLevel)
         {
-            ArgumentNullException.ThrowIfNull(paths, nameof(paths));
+            ArgumentNullException.ThrowIfNull(paths);
             if (paths.Length == 0)
                 throw new ArgumentOutOfRangeException(nameof(paths), "Empty file paths");
             
@@ -60,6 +62,7 @@ namespace Etherna.GatewayCli.Services
                         mimeType,
                         fileName,
                         new Hasher(),
+                        compactLevel: compactLevel,
                         postageStamper: postageStamper);
                 }
                 else if (Directory.Exists(path)) //is a directory
@@ -67,6 +70,7 @@ namespace Etherna.GatewayCli.Services
                     lastResult = await chunkService.UploadDirectoryAsync(
                         path,
                         new Hasher(),
+                        compactLevel: compactLevel,
                         postageStamper: postageStamper);
                 }
                 else //invalid path
