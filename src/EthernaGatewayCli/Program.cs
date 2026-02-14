@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet;
 using Etherna.CliHelper;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Commands;
@@ -111,12 +112,13 @@ namespace Etherna.GatewayCli
                     });
             }
             ethernaClientsBuilder.AddEthernaGatewayClient(
+                apiCompatibility: ethernaCommandOptions.UseBeeApi ? SwarmClients.Bee : SwarmClients.Beehive,
 #if DEVENV
-                    gatewayBaseUrl: ethernaCommandOptions.CustomGatewayUrl ?? "http://localhost:1633/"
+                gatewayBaseUrl: ethernaCommandOptions.CustomGatewayUrl ?? "http://localhost:1633/"
 #else
-                    gatewayBaseUrl: ethernaCommandOptions.CustomGatewayUrl ?? EthernaUserClientsBuilder.DefaultGatewayUrl
+                gatewayBaseUrl: ethernaCommandOptions.CustomGatewayUrl ?? EthernaUserClientsBuilder.DefaultGatewayUrl
 #endif
-                    );
+                );
 
             var serviceProvider = services.BuildServiceProvider();
             
