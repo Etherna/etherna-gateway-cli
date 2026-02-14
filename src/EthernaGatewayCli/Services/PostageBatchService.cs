@@ -36,7 +36,8 @@ namespace Etherna.GatewayCli.Services
     {
         public async Task<int> CalculatePostageBatchDepthAsync(
             string[] paths,
-            ushort compactLevel)
+            ushort compactLevel,
+            RedundancyLevel redundancyLevel)
         {
             ArgumentNullException.ThrowIfNull(paths);
             if (paths.Length == 0)
@@ -63,6 +64,7 @@ namespace Etherna.GatewayCli.Services
                         fileName,
                         new Hasher(),
                         compactLevel: compactLevel,
+                        redundancyLevel: redundancyLevel,
                         postageStamper: postageStamper);
                 }
                 else if (Directory.Exists(path)) //is a directory
@@ -71,6 +73,7 @@ namespace Etherna.GatewayCli.Services
                         path,
                         new Hasher(),
                         compactLevel: compactLevel,
+                        redundancyLevel: redundancyLevel,
                         postageStamper: postageStamper);
                 }
                 else //invalid path

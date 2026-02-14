@@ -53,7 +53,8 @@ namespace Etherna.GatewayCli.Commands.Etherna
             // Search files and calculate required postage batch depth.
             var batchDepth = await postageBatchService.CalculatePostageBatchDepthAsync(
                 paths,
-                Options.CompactLevel);
+                Options.CompactLevel,
+                Options.RedundancyLevel);
             
             // Identify postage batch to use.
             var postageBatchId = await postageBatchService.GetUsablePostageBatchAsync(
@@ -85,6 +86,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                                 compactLevel: Options.CompactLevel,
                                 name: Path.GetFileName(path),
                                 contentType: mimeType,
+                                swarmRedundancyLevel: Options.RedundancyLevel,
                                 swarmPin: Options.PinResource);
                         }
                         else if (Directory.Exists(path)) //is a directory
@@ -93,6 +95,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
                                 path,
                                 postageBatchId,
                                 compactLevel: Options.CompactLevel,
+                                swarmRedundancyLevel: Options.RedundancyLevel,
                                 swarmPin: Options.PinResource);
                         }
                         else //invalid path

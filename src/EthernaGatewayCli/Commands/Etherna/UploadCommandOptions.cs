@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.CliHelper.Commands.Models;
 using Etherna.CliHelper.Commands.Models.OptionRequirements;
 using System;
@@ -30,6 +31,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
             new(null, "--postage", "Use an existing postage batch. Create a new otherwise", args => UsePostageBatchId = args[0], [typeof(string)]),
             new("-A", "--auto-purchase", "Auto purchase new postage batch", _ => NewPostageAutoPurchase = true),
             new("-c", "--compact-level", "Chunks compact level", args => CompactLevel = ushort.Parse(args[0]), [typeof(ushort)]),
+            new("-r", "--redundancy-level", "Redundancy level: 0=None, 1=Medium, 2=Strong, 3=Insane, 4=Paranoid", args => RedundancyLevel = (RedundancyLevel)ushort.Parse(args[0]), [typeof(ushort)]),
             new("-l", "--label", "Label of new postage batch", args => NewPostageLabel = args[0], [typeof(string)]),
             new("-t", "--ttl", $"TTL (days) of new postage batch (default: {DefaultPostageBatchTtl.Days} days)", args => NewPostageTtl = TimeSpan.FromDays(int.Parse(args[0])), [typeof(int)]),
             new("-f", "--fund-traffic", "Fund resource traffic to everyone", _ => OfferDownload = true),
@@ -37,7 +39,8 @@ namespace Etherna.GatewayCli.Commands.Etherna
         ];
         public override IEnumerable<OptionRequirementBase> Requirements =>
         [
-            new IfPresentThenOptionRequirement("--postage", new ForbiddenOptionRequirement("--auto-purchase", "--label", "--ttl"))
+            new IfPresentThenOptionRequirement("--postage", new ForbiddenOptionRequirement("--auto-purchase", "--label", "--ttl")),
+            new MaxValueOptionRequirement("--redundancy-level", 4)
         ];
 
         // Options.
@@ -47,6 +50,7 @@ namespace Etherna.GatewayCli.Commands.Etherna
         public TimeSpan NewPostageTtl { get; private set; } = DefaultPostageBatchTtl;
         public bool OfferDownload { get; private set; }
         public bool PinResource { get; private set; } = true;
+        public RedundancyLevel RedundancyLevel { get; private set; } = RedundancyLevel.None;
         public string? UsePostageBatchId { get; private set; }
     }
 }

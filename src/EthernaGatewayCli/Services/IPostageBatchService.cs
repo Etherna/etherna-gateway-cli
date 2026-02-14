@@ -22,7 +22,8 @@ namespace Etherna.GatewayCli.Services
     {
         Task<int> CalculatePostageBatchDepthAsync(
             string[] paths,
-            ushort compactLevel);
+            ushort compactLevel,
+            RedundancyLevel redundancyLevel);
         
         Task<PostageBatchId> GetUsablePostageBatchAsync(
             int minBatchDepth,
