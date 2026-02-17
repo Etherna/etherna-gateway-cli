@@ -39,12 +39,12 @@
 
   <ItemGroup>
     <PackageReference Include="Etherna.CliHelper" Version="0.2.0-alpha.8" />
-    <PackageReference Include="EthernaSdk.Users.Gateway" Version="0.4.0-alpha.211" />
-    <PackageReference Include="GitVersion.MsBuild" Version="6.5.1">
+    <PackageReference Include="EthernaSdk.Users.Gateway" Version="0.4.0-alpha.214" />
+    <PackageReference Include="GitVersion.MsBuild" Version="6.6.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.102">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.103">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
