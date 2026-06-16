@@ -12,10 +12,10 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Models;
 using Etherna.CliHelper.Commands.Models;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Users.Gateway.Services;
+using Etherna.SwarmSdk.Models;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -86,8 +86,8 @@ namespace Etherna.GatewayCli.Commands.Etherna
                                 compactLevel: Options.CompactLevel,
                                 name: Path.GetFileName(path),
                                 contentType: mimeType,
-                                swarmRedundancyLevel: Options.RedundancyLevel,
-                                swarmPin: Options.PinResource);
+                                redundancyLevel: Options.RedundancyLevel,
+                                pin: Options.PinResource);
                         }
                         else if (Directory.Exists(path)) //is a directory
                         {
@@ -95,8 +95,8 @@ namespace Etherna.GatewayCli.Commands.Etherna
                                 path,
                                 postageBatchId,
                                 compactLevel: Options.CompactLevel,
-                                swarmRedundancyLevel: Options.RedundancyLevel,
-                                swarmPin: Options.PinResource);
+                                redundancyLevel: Options.RedundancyLevel,
+                                pin: Options.PinResource);
                         }
                         else //invalid path
                             throw new InvalidOperationException($"Path {path} is not valid");

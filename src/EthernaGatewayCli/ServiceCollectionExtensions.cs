@@ -12,9 +12,9 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Services;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Users.Gateway.Services;
+using Etherna.SwarmSdk.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Etherna.GatewayCli

@@ -12,12 +12,12 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.JsonConverters;
-using Etherna.BeeNet.Models;
 using Etherna.CliHelper.Commands.Models;
 using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Gateway.GenClients;
 using Etherna.Sdk.Users.Gateway.Services;
+using Etherna.SwarmSdk.JsonConverters;
+using Etherna.SwarmSdk.Models;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -34,9 +34,9 @@ namespace Etherna.GatewayCli.Commands.Etherna.Postage
         {
             Converters =
             {
-                new BzzValueJsonConverter(true),
+                new BzzValueJsonConverter(NumericFormat.AsString),
                 new PostageBatchIdJsonConverter(),
-                new XDaiValueJsonConverter(true)
+                new XDaiValueJsonConverter(NumericFormat.AsString)
             },
             WriteIndented = true
         };

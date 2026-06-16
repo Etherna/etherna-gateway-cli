@@ -12,11 +12,11 @@
 // You should have received a copy of the GNU Affero General Public License along with Etherna Gateway CLI.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Hashing;
-using Etherna.BeeNet.Services;
-using Etherna.BeeNet.Stores;
 using Etherna.CliHelper.Commands.Models;
 using Etherna.GatewayCli.Services;
+using Etherna.SwarmSdk.Hashing;
+using Etherna.SwarmSdk.Services;
+using Etherna.SwarmSdk.Stores;
 using System;
 using System.IO;
 using System.Threading.Tasks;
