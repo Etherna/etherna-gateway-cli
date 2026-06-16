@@ -50,7 +50,7 @@ namespace Etherna.GatewayCli.Utilities
         public static async Task<bool> CheckNewVersionAsync(
             IIoService ioService)
         {
-            ArgumentNullException.ThrowIfNull(ioService, nameof(ioService));
+            ArgumentNullException.ThrowIfNull(ioService);
             
             // Get current version.
             ioService.WriteLine($"Etherna Gateway CLI (v{CurrentVersion})");

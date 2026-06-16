@@ -34,7 +34,7 @@ namespace Etherna.GatewayCli.Commands
         // Protected methods.
         protected override async Task ExecuteAsync(string[] commandArgs)
         {
-            ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
+            ArgumentNullException.ThrowIfNull(commandArgs);
             
             // Check for new versions.
             var newVersionAvailable = await EthernaVersionControl.CheckNewVersionAsync(IoService);

@@ -33,7 +33,7 @@ namespace Etherna.GatewayCli.Commands.Etherna.Chunk
 
         protected override async Task ExecuteAsync(string[] commandArgs)
         {
-            ArgumentNullException.ThrowIfNull(commandArgs, nameof(commandArgs));
+            ArgumentNullException.ThrowIfNull(commandArgs);
 
             // Parse args.
             if (commandArgs.Length != 2)
