@@ -24,7 +24,8 @@ namespace Etherna.GatewayCli.Services
     internal sealed class AuthenticationService(
         IEthernaOpenIdConnectClient ethernaOpenIdConnectClient,
         IEthernaSignInService ethernaSignInService,
-        IIoService ioService)
+        IIoService ioService,
+        AuthenticationServiceOptions options)
         : IAuthenticationService
     {
         // Methods.
@@ -32,7 +33,10 @@ namespace Etherna.GatewayCli.Services
         {
             try
             {
-                await ethernaSignInService.SignInAsync();
+                if (options.ApiKey is null) //"code" grant flow
+                    await ethernaSignInService.SignInAsync();
+                else //"password" grant flow
+                    await ethernaSignInService.SignInAsync(options.ApiKey);
             }
             catch (InvalidOperationException)
             {

@@ -15,6 +15,7 @@
 using Etherna.CliHelper;
 using Etherna.CliHelper.Services;
 using Etherna.GatewayCli.Commands;
+using Etherna.GatewayCli.Services;
 using Etherna.Sdk.Users;
 using Etherna.SwarmSdk;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,9 +34,12 @@ namespace Etherna.GatewayCli
         {
             /****
              * WORKAROUND
-             * See: https://etherna.atlassian.net/browse/EAUTH-21
-             * We need to configure the authentication method before of create Service Provider.
-             * Because of this, we decided to run only option parsing upfront, and so instantiate the real command.
+             * Arguments are parsed twice: once here upfront, and again with full validation inside
+             * EthernaCommand.RunAsync. This is still required because some service registrations
+             * need parsed root options (the api key handed to the authentication service, the
+             * gateway client compatibility and url).
+             * To be removed when options parsed by commands become accessible from DI (CliHelper
+             * evolution), and the gateway client registration can read its settings lazily (SDK).
              */
             var ethernaCommandOptions = new EthernaCommandOptions();
             var tmpIoService = new ConsoleIoService();
@@ -54,12 +58,16 @@ namespace Etherna.GatewayCli
 #pragma warning restore CA1031
             /* END WORKAROUND
              ****/
-            
+
             // Setup DI.
             var services = new ServiceCollection();
 
             //services
             services.AddCoreServices();
+            services.AddSingleton(new AuthenticationServiceOptions
+            {
+                ApiKey = ethernaCommandOptions.ApiKey
+            });
             services.AddCliHelper<ConsoleIoService>()
                 .AddCommand<Commands.EthernaCommand>(subCommands => subCommands
                     .AddCommand<Commands.Etherna.ChunkCommand>(subCommands => subCommands
@@ -76,41 +84,21 @@ namespace Etherna.GatewayCli
                     .AddCommand<Commands.Etherna.UploadCommand>());
             
             // Register etherna service clients.
-            IEthernaUserClientsBuilder ethernaClientsBuilder;
-            if (ethernaCommandOptions.ApiKey is null) //"code" grant flow
-            {
-                ethernaClientsBuilder = services.AddEthernaUserClientsWithCodeAuth(
-                    CommonConsts.EthernaGatewayCliClientId,
-                    null,
-                    11430,
-                    ApiScopes,
+            var ethernaClientsBuilder = services.AddEthernaUserClients(
+                CommonConsts.EthernaGatewayCliClientId,
+                null,
+                11430,
+                ApiScopes,
 #if DEVENV
-                    authority: "https://localhost:44379/",
+                authority: "https://localhost:44379/",
 #else
-                    authority: EthernaUserClientsBuilder.DefaultSsoUrl,
+                authority: EthernaUserClientsBuilder.DefaultSsoUrl,
 #endif
-                    httpClientName: CommonConsts.HttpClientName,
-                    configureHttpClient: c =>
-                    {
-                        c.Timeout = TimeSpan.FromMinutes(30);
-                    });
-            }
-            else //"password" grant flow
-            {
-                ethernaClientsBuilder = services.AddEthernaUserClientsWithApiKeyAuth(
-                    ethernaCommandOptions.ApiKey,
-                    ApiScopes,
-#if DEVENV
-                    authority: "https://localhost:44379/",
-#else
-                    authority: EthernaUserClientsBuilder.DefaultSsoUrl,
-#endif
-                    httpClientName: CommonConsts.HttpClientName,
-                    configureHttpClient: c =>
-                    {
-                        c.Timeout = TimeSpan.FromMinutes(30);
-                    });
-            }
+                httpClientName: CommonConsts.HttpClientName,
+                configureHttpClient: c =>
+                {
+                    c.Timeout = TimeSpan.FromMinutes(30);
+                });
             ethernaClientsBuilder.AddEthernaGatewayClient(
                 apiCompatibility: ethernaCommandOptions.UseBeeApi ? SwarmClients.Bee : SwarmClients.Beehive,
 #if DEVENV
